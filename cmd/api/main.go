@@ -2,12 +2,17 @@ package main
 
 import (
 	"log"
+	"tormentus/internal/handlers"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
+	// Inicializar el router
 	r := gin.Default()
+
+	// Inicializar el handler
+	authHandler := handlers.NewAuthHandler()
 
 	// Servir archivos estáticos
 	r.Static("/static", "./web/static")
@@ -23,9 +28,9 @@ func main() {
 	})
 
 	// API Group
-	{
-		api := r.Group("/api")
 
+	api := r.Group("/api")
+	{
 		// Health check API
 		api.GET("/health", func(c *gin.Context) {
 			c.JSON(200, gin.H{
@@ -35,6 +40,10 @@ func main() {
 			})
 		})
 
+		authGroup := api.Group("/auth") // /api/auth/*
+		{
+			authGroup.POST("/login", authHandler.Login)
+		}
 		// Ruta para User Profile
 		api.GET("/user/profile", func(c *gin.Context) {
 			c.JSON(200, gin.H{
