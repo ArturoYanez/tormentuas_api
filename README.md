@@ -31,6 +31,8 @@ tormentus/
 │   │   └── user.go
 │   └── database/            # Configuración de base de datos
 │       └── postgres.go
+├── migrations/              # Scripts de migración de base de datos
+│   └── 001_create_users_table.sql
 ├── web/
 │   ├── static/css/          # Estilos CSS
 │   │   └── style.css
@@ -86,9 +88,14 @@ tormentus/
 
 ### Autenticación
 
-- `POST /api/auth/register` - Registro de usuario
-- `POST /api/auth/login` - Inicio de sesión
+- `POST /api/auth/register` - Registro de usuario (con validación y hash de contraseña)
+- `POST /api/auth/login` - Inicio de sesión (con validación de email)
 - `GET /api/auth/profile` - Obtener perfil de usuario
+
+### Base de Datos
+
+- Conexión a PostgreSQL implementada
+- Migraciones automáticas para creación de tablas de usuarios
 
 ### Ejemplos de Uso
 
@@ -138,10 +145,11 @@ Para producción, configura las siguientes variables de entorno:
 ## 🧪 Estado del Proyecto
 
 - ✅ Estructura básica implementada
-- ✅ Autenticación básica (mock)
+- ✅ Autenticación básica (registro y login implementados)
+- ✅ Conexión a base de datos PostgreSQL
+- ✅ Migraciones de base de datos
 - ✅ Frontend landing page
 - ✅ Configuración Docker
-- 🔄 Base de datos PostgreSQL (configurada, pendiente implementación completa)
 - 🔄 JWT tokens reales (mock actual)
 - 🔄 Funcionalidades de trading (pendiente)
 
