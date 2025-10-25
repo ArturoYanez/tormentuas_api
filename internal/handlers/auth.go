@@ -6,16 +6,19 @@ import (
 	"time"
 
 	"tormentus/internal/models"
+	"tormentus/internal/repositories"
 
 	"github.com/gin-gonic/gin"
 )
 
 type AuthHandler struct {
-	// Dependencias futuras
+	userRepo repositories.UserRepository // Nueva dependencia Repositorio de Usuarios
 }
 
-func NewAuthHandler() *AuthHandler {
-	return &AuthHandler{}
+func NewAuthHandler(userRepo repositories.UserRepository) *AuthHandler {
+	return &AuthHandler{
+		userRepo: userRepo,
+	}
 }
 
 func (h *AuthHandler) Login(c *gin.Context) {
@@ -32,16 +35,25 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	// Mock user (temporal)
-	mockUser := &models.User{
-		ID:       "user-123",
-		Email:    credentials.Email,
-		Password: "$2a$10$hashed_password_mock",
+	// Buscar usuario en la base de datos real
+	user, err := h.userRepo.Context.GetUserByEmail(c.Request.Context(), credentials.Email)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error" : "Error buscando el usuario en base de datos",
+		})
+		return
+	}
+
+	if user == nil || !user.CheckPassword(credentials.Password) {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error" : "Credenciales invalidas",
+		})
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Login exitoso",
-		"token":   "jwt-token-mock",
+		"token":   "jwt-token-mock", // Lo implementaremos despues
 		"user": gin.H{
 			"id":    mockUser.ID,
 			"email": mockUser.Email,
@@ -66,12 +78,32 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
+	//Verifica si el usuario ya existe
+	existingUser, err := h.userRepo.GetUserByEmail(c.Request.Context(), req.Email)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error" : "Error verificando usuario"
+		})
+		return
+	}
+
+	if existingUser != nil {
+		c.JSON(htttp.StatusConflict, gin.H{
+			"error" : "El email ya esta registrado",
+		})
+		return
+	}
+
 	user := &models.User{
 		Email:     req.Email,
 		Password:  req.Password,
 		FirstName: req.FirstName,
 		LastName:  req.LastName,
 	}
+
+	user.ID = "user-" + fmt.Sprintf("%d", time.Now().Unix())
+	user.CreatedAt = time.Now()
+	user.UpdatedAt = time.Now()
 
 	if err := user.HashPassword(); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -80,9 +112,13 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
-	user.ID = "user-" + fmt.Sprintf("%d", time.Now().Unix())
-	user.CreatedAt = time.Now()
-	user.UpdatedAt = time.Now()
+	// Guardar en base de datos real
+	if err := h.userRepo.CreateUser(c.Request.Context(), user) err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error" : "Error creando usuario en base de datos",
+		})
+		return
+	}
 
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "Registro exitoso",
