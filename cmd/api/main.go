@@ -31,27 +31,12 @@ func main() {
 
 	api := r.Group("/api")
 	{
-		// Health check API
-		api.GET("/health", func(c *gin.Context) {
-			c.JSON(200, gin.H{
-				"status":  "ok",
-				"service": "tormentus",
-				"version": "0.1.0",
-			})
-		})
-
 		authGroup := api.Group("/auth") // /api/auth/*
 		{
+			authGroup.GET("/profile", authHandler.GetProfile)
 			authGroup.POST("/login", authHandler.Login)
+			authGroup.POST("/register", authHandler.Register)
 		}
-		// Ruta para User Profile
-		api.GET("/user/profile", func(c *gin.Context) {
-			c.JSON(200, gin.H{
-				"status":  "ok",
-				"service": "tormentus",
-				"version": "0.1.0",
-			})
-		})
 	}
 
 	log.Println("Servidor iniciado en http://localhost:8080")

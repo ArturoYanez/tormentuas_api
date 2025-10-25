@@ -55,38 +55,29 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	})
 }
 
-type RegisterHandler struct {
-	//Aqui iran dependencias como userService (se agregara luego)
-}
-
-// NewRegisterHandler - Factory function (Patron comun en Go)
-func NewRegisterHandler() *RegisterHandler {
-	return &RegisterHandler{}
-}
-
 // Register - Maneja las peticiones POST /api/auth/register
-func (h *RegisterHandler) Register(c *gin.Context) {
+func (h *AuthHandler) Register(c *gin.Context) {
 	//Definir estructura para el Body de la peticion
-	var credentials struct {
+	var req struct {
 		Email     string `json:"email" binding:"required,email"`
 		Password  string `json:"password" binding:"required"`
-		FirstName string `json:"FirstName" binding:"required"`
-		LastName  string `json:"LastName" binding:"required"`
+		FirstName string `json:"first_name" binding:"required"`
+		LastName  string `json:"last_name" binding:"required"`
 	}
 
-	if err := c.ShouldBindJSON(&credentials); err != nil {
+	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error":   "Email, password, firstName y lastName requeridos",
+			"error":   "Email, - , firstName y lastName requeridos",
 			"details": err.Error(),
 		})
 		return
 	}
 
 	user := &models.User{
-		Email:     credentials.Email,
-		Password:  credentials.Password, // Password en texto plano por ahora
-		FirstName: credentials.FirstName,
-		LastName:  credentials.LastName,
+		Email:     req.Email,
+		Password:  req.Password, // Password en texto plano por ahora
+		FirstName: req.FirstName,
+		LastName:  req.LastName,
 	}
 
 	// Hashear Password
@@ -114,4 +105,31 @@ func (h *RegisterHandler) Register(c *gin.Context) {
 			"createdAt": user.CreatedAt,
 		},
 	})
+}
+
+// Register - Maneja las peticiones POST /api/auth/register
+func (h *AuthHandler) GetProfile(c *gin.Context) {
+	// Creaciond e instancia de mi struct User
+	user := &models.User{
+		// Asignacion de datos manualmente - mock
+		ID:        "user-profile-123",
+		Email:     "maria.garcia@empresa.com",
+		FirstName: "María",
+		LastName:  "García",
+		CreatedAt: time.Now().AddDate(0, 0, -7),
+		UpdatedAt: time.Now().AddDate(0, 0, -7),
+	}
+
+	// Respuesta al cliente
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Perfil obtenido exitosamente",
+		"user": gin.H{
+			"id":         user.ID,
+			"email":      user.Email,
+			"first_name": user.FirstName,
+			"last_name":  user.LastName,
+			"created_at": user.CreatedAt,
+		},
+	})
+
 }
