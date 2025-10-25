@@ -10,64 +10,57 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// AuthHandler - Struct para agregar metodos relacionados
 type AuthHandler struct {
-	//Aqui iran dependencias como userService (se agregara luego)
+	// Dependencias futuras
 }
 
-// NewAuthHandler - Factory function (Patron comun en Go)
 func NewAuthHandler() *AuthHandler {
 	return &AuthHandler{}
 }
 
-// Login - Maneja las peticiones POST /api/auth/login
 func (h *AuthHandler) Login(c *gin.Context) {
-	//Definir estructura para el Body de la peticion
 	var credentials struct {
-		Email    string `json:"email" binding:"required,email"` // binding:"required" = Joi validation
+		Email    string `json:"email" binding:"required,email"`
 		Password string `json:"password" binding:"required"`
 	}
 
-	//Validar y bindear Json
 	if err := c.ShouldBindJSON(&credentials); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error":   "Email y password requeridos",
-			"details": err.Error(), // Gin genera detalles del error automaticos
+			"details": err.Error(),
 		})
-		return // IMPORTANTE: return despues de error
+		return
 	}
 
-	//Buscar usuario en db (Por ahora MOCK)
+	// Mock user (temporal)
 	mockUser := &models.User{
 		ID:       "user-123",
 		Email:    credentials.Email,
-		Password: "$2a$10$hashed_password_mock", //bcrypt hash de  "123456"
+		Password: "$2a$10$hashed_password_mock",
 	}
 
-	//Verificar password
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Login exitoso",
-		"token":   "jwt-token-mock", //Se implementara luego
-		"user": gin.H{ //gin.H es map[string]interface{} = ojeto en JS
+		"token":   "jwt-token-mock",
+		"user": gin.H{
 			"id":    mockUser.ID,
 			"email": mockUser.Email,
 		},
 	})
 }
 
-// Register - Maneja las peticiones POST /api/auth/register
 func (h *AuthHandler) Register(c *gin.Context) {
-	//Definir estructura para el Body de la peticion
+
 	var req struct {
 		Email     string `json:"email" binding:"required,email"`
-		Password  string `json:"password" binding:"required"`
+		Password  string `json:"password" binding:"required,min=6"`
 		FirstName string `json:"first_name" binding:"required"`
 		LastName  string `json:"last_name" binding:"required"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error":   "Email, - , firstName y lastName requeridos",
+			"error":   "Todos los campos son requeridos",
 			"details": err.Error(),
 		})
 		return
@@ -75,43 +68,36 @@ func (h *AuthHandler) Register(c *gin.Context) {
 
 	user := &models.User{
 		Email:     req.Email,
-		Password:  req.Password, // Password en texto plano por ahora
+		Password:  req.Password,
 		FirstName: req.FirstName,
 		LastName:  req.LastName,
 	}
 
-	// Hashear Password
 	if err := user.HashPassword(); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":   "Error al hashear password",
-			"details": err.Error(),
+			"error": "Error al procesar contraseña",
 		})
 		return
 	}
 
-	//Guardar usuario en db (Por ahora MOCK)
-	user.ID = "user-" + fmt.Sprintf("%d", time.Now().Unix()) //ID Temporal
+	user.ID = "user-" + fmt.Sprintf("%d", time.Now().Unix())
 	user.CreatedAt = time.Now()
 	user.UpdatedAt = time.Now()
 
-	//Enviar respuesta - sin enviar password
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "Registro exitoso",
 		"user": gin.H{
-			"id":        user.ID,
-			"email":     user.Email,
-			"firstName": user.FirstName,
-			"lastName":  user.LastName,
-			"createdAt": user.CreatedAt,
+			"id":         user.ID,
+			"email":      user.Email,
+			"first_name": user.FirstName,
+			"last_name":  user.LastName,
+			"created_at": user.CreatedAt,
 		},
 	})
 }
 
-// Register - Maneja las peticiones POST /api/auth/register
 func (h *AuthHandler) GetProfile(c *gin.Context) {
-	// Creaciond e instancia de mi struct User
 	user := &models.User{
-		// Asignacion de datos manualmente - mock
 		ID:        "user-profile-123",
 		Email:     "maria.garcia@empresa.com",
 		FirstName: "María",
@@ -120,7 +106,6 @@ func (h *AuthHandler) GetProfile(c *gin.Context) {
 		UpdatedAt: time.Now().AddDate(0, 0, -7),
 	}
 
-	// Respuesta al cliente
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Perfil obtenido exitosamente",
 		"user": gin.H{
@@ -131,5 +116,4 @@ func (h *AuthHandler) GetProfile(c *gin.Context) {
 			"created_at": user.CreatedAt,
 		},
 	})
-
 }
