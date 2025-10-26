@@ -108,14 +108,15 @@ func (h *AuthHandler) Register(c *gin.Context) {
 
 	user := &models.User{
 		Email:     req.Email,
-		Password:  req.Password, // Contraseña en texto plano
+		Password:  req.Password,
 		FirstName: req.FirstName,
 		LastName:  req.LastName,
 	}
 
 	if err := user.HashPassword(); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Error al procesar contraseña",
+			"error":   "Error al procesar contraseña",
+			"details": err.Error(),
 		})
 		return
 	}
@@ -123,13 +124,23 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	// Guardar en base de datos real
 	if err := h.userRepo.CreateUser(c.Request.Context(), user); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Error creando usuario en base de datos",
+			"error":   "Error creando usuario en base de datos",
+			"details": err.Error(),
 		})
 		return
 	}
 
+	token, err := h.jwtManager.Generate(user.ID, user.Email)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "Error al generar token",
+			"details": err.Error(),
+		})
+	}
+
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "Registro exitoso",
+		"token":   token,
 		"user": gin.H{
 			"id":         user.ID,
 			"email":      user.Email,
