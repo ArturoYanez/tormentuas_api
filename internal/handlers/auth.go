@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -36,17 +35,17 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	}
 
 	// Buscar usuario en la base de datos real
-	user, err := h.userRepo.Context.GetUserByEmail(c.Request.Context(), credentials.Email)
+	user, err := h.userRepo.GetUserByEmail(c.Request.Context(), credentials.Email)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error" : "Error buscando el usuario en base de datos",
+			"error": "Error buscando el usuario en base de datos",
 		})
 		return
 	}
 
 	if user == nil || !user.CheckPassword(credentials.Password) {
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"error" : "Credenciales invalidas",
+			"error": "Credenciales invalidas",
 		})
 		return
 	}
@@ -55,8 +54,8 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		"message": "Login exitoso",
 		"token":   "jwt-token-mock", // Lo implementaremos despues
 		"user": gin.H{
-			"id":    mockUser.ID,
-			"email": mockUser.Email,
+			"id":    user.ID,
+			"email": user.Email,
 		},
 	})
 }
@@ -82,28 +81,24 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	existingUser, err := h.userRepo.GetUserByEmail(c.Request.Context(), req.Email)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error" : "Error verificando usuario"
+			"error": "Error verificando usuario: " + err.Error(),
 		})
 		return
 	}
 
 	if existingUser != nil {
-		c.JSON(htttp.StatusConflict, gin.H{
-			"error" : "El email ya esta registrado",
+		c.JSON(http.StatusConflict, gin.H{
+			"error": "El email ya esta registrado",
 		})
 		return
 	}
 
 	user := &models.User{
 		Email:     req.Email,
-		Password:  req.Password,
+		Password:  req.Password, // Contraseña en texto plano
 		FirstName: req.FirstName,
 		LastName:  req.LastName,
 	}
-
-	user.ID = "user-" + fmt.Sprintf("%d", time.Now().Unix())
-	user.CreatedAt = time.Now()
-	user.UpdatedAt = time.Now()
 
 	if err := user.HashPassword(); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -113,9 +108,9 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	}
 
 	// Guardar en base de datos real
-	if err := h.userRepo.CreateUser(c.Request.Context(), user) err != nil {
+	if err := h.userRepo.CreateUser(c.Request.Context(), user); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error" : "Error creando usuario en base de datos",
+			"error": "Error creando usuario en base de datos",
 		})
 		return
 	}

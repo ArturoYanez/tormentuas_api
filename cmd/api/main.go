@@ -6,7 +6,7 @@ import (
 	"tormentus/internal/database"
 	"tormentus/internal/handlers"
 	"tormentus/internal/repositories"
-	"tormentus/pkg/configs"
+	"tormentus/pkg/config"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,10 +17,17 @@ func main() {
 
 	// Conectar a la base de datos
 	db, err := database.NewDB(cfg)
-	if err := nil {
+	if err != nil {
 		log.Fatal("Error conectando a la base de datos", err)
 	}
 	defer db.Close()
+
+	log.Println("Conectado a PostgreSQL exitosamente")
+
+	// Ejecucion de migraciones
+	if err := database.RunMigrations(db.SQL, "./migrations"); err != nil {
+		log.Fatal(err)
+	}
 
 	// Obtener una conexion del pool
 	conn, err := db.Pool.Acquire(context.Background())
@@ -29,17 +36,33 @@ func main() {
 	}
 	defer conn.Release()
 
+	log.Println("Conexión adquirida del pool")
+
+	// Verificar que podemos consultar la tabla
+	var tableExists bool
+	err = conn.QueryRow(context.Background(),
+		"SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'users')").Scan(&tableExists)
+
+	if err != nil {
+		log.Fatal("Error verificando tabla users:", err)
+	}
+
+	if tableExists {
+		log.Println("Tabla 'users' verificada - existe en la base de datos")
+	} else {
+		log.Fatal("Tabla 'users' NO existe en la base de datos")
+	}
+
 	// inicializar repositorio
 	userRepo := repositories.NewPostgresUserRepository(conn.Conn())
+	log.Println("Repositorio de usuarios inicializado")
 
 	// Inicializar handler en el repositorio
 	authHandler := handlers.NewAuthHandler(userRepo)
-	
+	log.Println("Handler de autenticación inicializado")
+
 	// Inicializar el router
 	r := gin.Default()
-
-	// Inicializar el handler
-	authHandler := handlers.NewAuthHandler()
 
 	// Servir archivos estáticos
 	r.Static("/static", "./web/static")
@@ -66,6 +89,6 @@ func main() {
 		}
 	}
 
-	log.Println("Servidor iniciado en http://localhost:8080")
+	log.Println("Servidor iniciado en http://localhost:" + cfg.ServerPort)
 	r.Run(":8080")
 }

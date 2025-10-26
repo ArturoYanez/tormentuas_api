@@ -1,4 +1,4 @@
-version: '3.8'
+# docker-compose.yml - VERSIÓN MÍNIMA FUNCIONAL
 services:
   postgres:
     image: postgres:17
@@ -11,12 +11,8 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./migrations:/docker-entrypoint-initdb.d  # Para migraciones automáticas
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U tormentus_user"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+      - ./migrations:/docker-entrypoint-initdb.d
+      - ./postgres-config/pg_hba.conf:/var/lib/postgresql/data/pg_hba.conf
 
 volumes:
   postgres_data:

@@ -1,9 +1,9 @@
 package repositories
 
-import {
+import (
 	"context"
 	"tormentus/internal/models"
-}
+)
 
 type UserRepository interface {
 	CreateUser(ctx context.Context, user *models.User) error
