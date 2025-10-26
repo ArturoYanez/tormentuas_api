@@ -1,10 +1,10 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
+	"tormentus/internal/auth"
 	"tormentus/internal/models"
 	"tormentus/internal/repositories"
 
@@ -12,12 +12,14 @@ import (
 )
 
 type AuthHandler struct {
-	userRepo repositories.UserRepository // Nueva dependencia Repositorio de Usuarios
+	userRepo   repositories.UserRepository // Repositorio de Usuarios
+	jwtManager *auth.JWTManager            // Nueva dependencia Json Web Token Manager
 }
 
-func NewAuthHandler(userRepo repositories.UserRepository) *AuthHandler {
+func NewAuthHandler(userRepo repositories.UserRepository, jwtManager *auth.JWTManager) *AuthHandler {
 	return &AuthHandler{
-		userRepo: userRepo,
+		userRepo:   userRepo,
+		jwtManager: jwtManager,
 	}
 }
 
@@ -35,28 +37,38 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	// Buscar usuario en la base de datos real
-	user, err := h.userRepo.Context.GetUserByEmail(c.Request.Context(), credentials.Email)
+	// Buscar usuario en la base de datos
+	user, err := h.userRepo.GetUserByEmail(c.Request.Context(), credentials.Email)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error" : "Error buscando el usuario en base de datos",
+			"error": "Error buscando el usuario en base de datos",
 		})
 		return
 	}
 
 	if user == nil || !user.CheckPassword(credentials.Password) {
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"error" : "Credenciales invalidas",
+			"error": "Credenciales invalidas",
+		})
+		return
+	}
+
+	// Generar JWT Token (New)
+	token, err := h.jwtManager.Generate(user.ID, user.Email)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "Error generando token",
+			"details": err.Error(),
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Login exitoso",
-		"token":   "jwt-token-mock", // Lo implementaremos despues
+		"token":   token, // Ahora es un JWT real
 		"user": gin.H{
-			"id":    mockUser.ID,
-			"email": mockUser.Email,
+			"id":    user.ID,
+			"email": user.Email,
 		},
 	})
 }
@@ -82,14 +94,14 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	existingUser, err := h.userRepo.GetUserByEmail(c.Request.Context(), req.Email)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error" : "Error verificando usuario"
+			"error": "Error verificando usuario: " + err.Error(),
 		})
 		return
 	}
 
 	if existingUser != nil {
-		c.JSON(htttp.StatusConflict, gin.H{
-			"error" : "El email ya esta registrado",
+		c.JSON(http.StatusConflict, gin.H{
+			"error": "El email ya esta registrado",
 		})
 		return
 	}
@@ -101,27 +113,34 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		LastName:  req.LastName,
 	}
 
-	user.ID = "user-" + fmt.Sprintf("%d", time.Now().Unix())
-	user.CreatedAt = time.Now()
-	user.UpdatedAt = time.Now()
-
 	if err := user.HashPassword(); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Error al procesar contraseña",
+			"error":   "Error al procesar contraseña",
+			"details": err.Error(),
 		})
 		return
 	}
 
 	// Guardar en base de datos real
-	if err := h.userRepo.CreateUser(c.Request.Context(), user) err != nil {
+	if err := h.userRepo.CreateUser(c.Request.Context(), user); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error" : "Error creando usuario en base de datos",
+			"error":   "Error creando usuario en base de datos",
+			"details": err.Error(),
 		})
 		return
 	}
 
+	token, err := h.jwtManager.Generate(user.ID, user.Email)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "Error al generar token",
+			"details": err.Error(),
+		})
+	}
+
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "Registro exitoso",
+		"token":   token,
 		"user": gin.H{
 			"id":         user.ID,
 			"email":      user.Email,
