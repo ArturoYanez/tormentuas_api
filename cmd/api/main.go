@@ -3,8 +3,13 @@ package main
 import (
 	"context"
 	"log"
+	"time"
+
+	"tormentos/internal/auth"
+	"tormentus/internal/auth"
 	"tormentus/internal/database"
 	"tormentus/internal/handlers"
+	"tormentus/internal/middleware"
 	"tormentus/internal/repositories"
 	"tormentus/pkg/config"
 
@@ -38,20 +43,11 @@ func main() {
 
 	log.Println("Conexión adquirida del pool")
 
-	// Verificar que podemos consultar la tabla
-	var tableExists bool
-	err = conn.QueryRow(context.Background(),
-		"SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'users')").Scan(&tableExists)
-
-	if err != nil {
-		log.Fatal("Error verificando tabla users:", err)
-	}
-
-	if tableExists {
-		log.Println("Tabla 'users' verificada - existe en la base de datos")
-	} else {
-		log.Fatal("Tabla 'users' NO existe en la base de datos")
-	}
+	// Inicializar JWT Manager
+	jwtManager := auth.NewJWTManager(
+		"mi-clave-secreta-muy-segura-para-jwt", // En produccion, usar variable de entorno
+		24*time.Hour,                           // Token expira en 24h
+	)
 
 	// inicializar repositorio
 	userRepo := repositories.NewPostgresUserRepository(conn.Conn())
@@ -64,12 +60,19 @@ func main() {
 	// Inicializar el router
 	r := gin.Default()
 
+	// Configuracion de Middleware Global
+	r.Use(func(c *gin.Context) {
+		c.Header("Access--Control-Allow-Origin", "*")
+		c.Header("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		c.Next()
+	})
+
+	// Routes publicas sin autenticacion
+
 	// Servir archivos estáticos
 	r.Static("/static", "./web/static")
-
 	// Configurar templates - PATRÓN CORREGIDO
 	r.LoadHTMLGlob("web/templates/*")
-
 	// Ruta de landing page
 	r.GET("/", func(c *gin.Context) {
 		c.HTML(200, "base.html", gin.H{
@@ -80,13 +83,21 @@ func main() {
 	// API Group
 
 	api := r.Group("/api")
-	{
-		authGroup := api.Group("/auth") // /api/auth/*
+	{ // Rutas publicas de auth
+		authGroup := api.Group("/auth")
 		{
-			authGroup.GET("/profile", authHandler.GetProfile)
 			authGroup.POST("/login", authHandler.Login)
 			authGroup.POST("/register", authHandler.Register)
 		}
+
+		// rutas protegidas - requiere JWT
+		protected := api.Group("/protected")
+		protected.Use(middleware.AuthMiddleware(jwtManager)) // Middleware aplicado
+		{
+			protected.GET("/profile", authHandler.GetProfile)
+			// Mas rutas protegidas por JWT aqui
+		}
+
 	}
 
 	log.Println("Servidor iniciado en http://localhost:" + cfg.ServerPort)
