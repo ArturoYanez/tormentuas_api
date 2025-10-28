@@ -5,7 +5,6 @@ import (
 	"log"
 	"time"
 
-	"tormentos/internal/auth"
 	"tormentus/internal/auth"
 	"tormentus/internal/database"
 	"tormentus/internal/handlers"
@@ -54,7 +53,7 @@ func main() {
 	log.Println("Repositorio de usuarios inicializado")
 
 	// Inicializar handler en el repositorio
-	authHandler := handlers.NewAuthHandler(userRepo)
+	authHandler := handlers.NewAuthHandler(userRepo, jwtManager)
 	log.Println("Handler de autenticación inicializado")
 
 	// Inicializar el router
