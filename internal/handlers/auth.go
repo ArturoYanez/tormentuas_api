@@ -205,7 +205,7 @@ func (h *AuthHandler) RefreshToken(c *gin.Context){
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error obteniendo usuario"})
 		return
 	}
-
+	
 	newAccessToken, err := h.jwtManager.Generate(user.ID, user.Email)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generando el token"})
