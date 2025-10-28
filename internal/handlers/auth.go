@@ -13,6 +13,7 @@ import (
 
 type AuthHandler struct {
 	userRepo   repositories.UserRepository // Repositorio de Usuarios
+	RefreshTokenRepo repositories.RefreshTokenRepository // Repositorio de RefreshToken
 	jwtManager *auth.JWTManager            // Nueva dependencia Json Web Token Manager
 }
 
@@ -179,4 +180,40 @@ func (h *AuthHandler) GetProfile(c *gin.Context) {
 			"created_at": user.CreatedAt,
 		},
 	})
+}
+
+func (h *AuthHandler) RefreshToken(c *gin.Context){
+	var req struct {
+		RefreshToken string `json: "refresh_token" binding: "required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil{
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Refresh token requerido"})
+		return
+	}
+
+	// Verificar refresh token en DB
+	storedToken, err := h.RefreshTokenRepo.GetByToken(c.Request.Context(), req.RefreshToken)
+	if err != nil || storedToken == nil || storedToken.ExpiresAt.Before(time.now()) {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Refresh token invalido"})
+		return
+	}
+
+	// Generar nuevo acceso token
+	user, err := h.UserRepo.GetUserByID(c.Request.context(), storedToken.UserID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error obteniendo usuario"})
+		return
+	}
+
+	newAccessToken, err := h.jwtManager.Generate(user.ID, user.Email)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generando el token"})
+	}
+
+	c.JSON(http.StatusOk, gin.H{
+		"access_token": newAccessToken,
+		"expirest_at": 3600,
+	})
+
 }
