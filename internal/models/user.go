@@ -2,23 +2,24 @@ package models
 
 import (
 	"time"
+
 	"golang.org/x/crypto/bcrypt"
 )
 
 // User define la estructura de datos - Similar a una interface de TypeScript
 
 type User struct {
-	ID			string		`json: "id" db: "id"`					// Tags: Como se mapea a JSON y DB
-	Email		string		`json: "email" db: "email"`				// Campo requerido en JSON y DB
-	Password	string		`json: "-" db: "password"`				// `-` significa NO incluir en el JSON
-	FirstName	string		`json: "first_name" db: "first_name"`
-	LastName	string		`json: "last_name" db: "last_name"`
-	CreatedAt	time.Time	`json: "created_at" db: "created_at"`
-	UpdatedAt	time.Time	`json: "updated_at" db: "updated_at"`
+	ID        string    `json: "id" db: "id"`       // Tags: Como se mapea a JSON y DB
+	Email     string    `json: "email" db: "email"` // Campo requerido en JSON y DB
+	Password  string    `json: "-" db: "password"`  // `-` significa NO incluir en el JSON
+	FirstName string    `json: "first_name" db: "first_name"`
+	LastName  string    `json: "last_name" db: "last_name"`
+	CreatedAt time.Time `json: "created_at" db: "created_at"`
+	UpdatedAt time.Time `json: "updated_at" db: "updated_at"`
 }
 
 // HashPassword - Metodo receptor (Como metodo de clase)
-func (u *User) HashPassword() error{
+func (u *User) HashPassword() error {
 	// bcrypt GenerateFromPassword ~~ bcrypt.hash() en Node.js
 	hashed, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
 	if err != nil {
@@ -33,4 +34,12 @@ func (u *User) CheckPassword(password string) bool {
 	// bcrypt.CompareHashAndPassword = bcrypt.compare() en Node.js
 	err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
 	return err == nil // true si coinciden, false si no
+}
+
+type RefreshToken struct {
+	ID        string    `json:"id" db:"id"`
+	UserID    string    `json:"user_id" db:"user_id"`
+	Token     string    `json:"token" db:"token"`
+	ExpiresAt time.Time `json:"expires_at" db:"expires_at"`
+	CreatedAt time.Time `json:"created_at" db:"created_at"`
 }
