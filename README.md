@@ -14,7 +14,7 @@ Plataforma de trading cripto avanzada construida con Go y Gin, diseñada para of
 
 - **Backend**: Go 1.25.1 con Gin Framework
 - **Base de Datos**: PostgreSQL 17 con pgx driver
-- **Autenticación**: JWT (golang-jwt/jwt/v5) con bcrypt para hashing de contraseñas
+- **Autenticación**: JWT (golang-jwt/jwt/v5) + Refresh Tokens con bcrypt para hashing de contraseñas
 - **Arquitectura**: Patrón Repository, Dependency Injection, Clean Architecture
 - **Frontend**: HTML5, CSS3, Templates Go
 - **Contenedorización**: Docker & Docker Compose
@@ -27,8 +27,9 @@ tormentus/
 ├── cmd/api/                 # Punto de entrada de la aplicación
 │   └── main.go
 ├── internal/
-│   ├── auth/                # Gestión de autenticación JWT
-│   │   └── jwt.go
+│   ├── auth/                # Gestión de autenticación JWT y Refresh Tokens
+│   │   ├── jwt.go
+│   │   └── refresh_token.go
 │   ├── database/            # Configuración y migraciones de BD
 │   │   ├── migrate.go
 │   │   └── postgres.go
@@ -40,11 +41,13 @@ tormentus/
 │   │   └── user.go
 │   └── repositories/        # Capa de acceso a datos
 │       ├── postgres_user_repository.go
+│       ├── refresh_token_repository.go
 │       └── user_repository.go
 ├── migrations/              # Scripts de migración de base de datos
 │   └── 001_create_users_table.sql
 ├── pkg/config/              # Configuración de la aplicación
 │   └── config.go
+├── postgres-config/         # Configuración personalizada de PostgreSQL
 ├── web/
 │   ├── static/css/          # Estilos CSS
 │   │   └── style.css
@@ -100,8 +103,9 @@ tormentus/
 
 ### Autenticación
 
-- `POST /api/auth/register` - Registro de usuario (con validación, hash de contraseña y JWT)
-- `POST /api/auth/login` - Inicio de sesión (con validación de email y JWT)
+- `POST /api/auth/register` - Registro de usuario (con validación, hash de contraseña y tokens JWT + Refresh)
+- `POST /api/auth/login` - Inicio de sesión (con validación de email y tokens JWT + Refresh)
+- `POST /api/auth/refresh` - Refrescar token de acceso usando refresh token
 - `GET /api/protected/profile` - Obtener perfil de usuario (requiere JWT)
 
 ### Base de Datos
@@ -140,6 +144,15 @@ curl -X GET http://localhost:8080/api/protected/profile \
   -H "Authorization: Bearer <tu-jwt-token>"
 ```
 
+#### Refrescar token de acceso
+```bash
+curl -X POST http://localhost:8080/api/auth/refresh \
+  -H "Content-Type: application/json" \
+  -d '{
+    "refresh_token": "<tu-refresh-token>"
+  }'
+```
+
 ## 🔧 Configuración
 
 ### Base de Datos
@@ -168,14 +181,16 @@ Para producción, configura las siguientes variables de entorno:
 ## 🧪 Estado del Proyecto
 
 - ✅ Estructura completa del proyecto implementada
-- ✅ Autenticación completa (registro, login, JWT tokens reales)
+- ✅ Autenticación completa (registro, login, JWT + Refresh Tokens)
+- ✅ Sistema de refresh tokens para renovación automática de sesiones
 - ✅ Conexión a base de datos PostgreSQL con pool de conexiones
 - ✅ Migraciones automáticas de base de datos
-- ✅ Patrón Repository para acceso a datos
+- ✅ Patrón Repository para acceso a datos (usuarios y refresh tokens)
 - ✅ Middleware de autenticación JWT
 - ✅ Configuración de entorno flexible
 - ✅ Frontend landing page
 - ✅ Configuración Docker completa
+- 🔄 Implementación completa del repositorio de refresh tokens (pendiente)
 - 🔄 Funcionalidades de trading (pendiente)
 - 🔄 Tests unitarios e integración (pendiente)
 
