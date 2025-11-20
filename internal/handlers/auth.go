@@ -12,15 +12,18 @@ import (
 )
 
 type AuthHandler struct {
-	userRepo   repositories.UserRepository // Repositorio de Usuarios
-	RefreshTokenRepo repositories.RefreshTokenRepository // Repositorio de RefreshToken
-	jwtManager *auth.JWTManager            // Nueva dependencia Json Web Token Manager
+	userRepo            repositories.UserRepository         // Repositorio de Usuarios
+	refreshTokenRepo    repositories.RefreshTokenRepository // Repositorio de RefreshToken (opcional)
+	jwtManager          *auth.JWTManager                    // Nueva dependencia Json Web Token Manager
+	refreshTokenManager *auth.RefreshTokenManager           // Generador de refresh tokens (opcional)
 }
 
-func NewAuthHandler(userRepo repositories.UserRepository, jwtManager *auth.JWTManager) *AuthHandler {
+func NewAuthHandler(userRepo repositories.UserRepository, refreshRepo repositories.RefreshTokenRepository, jwtManager *auth.JWTManager, refreshManager *auth.RefreshTokenManager) *AuthHandler {
 	return &AuthHandler{
-		userRepo:   userRepo,
-		jwtManager: jwtManager,
+		userRepo:            userRepo,
+		refreshTokenRepo:    refreshRepo,
+		jwtManager:          jwtManager,
+		refreshTokenManager: refreshManager,
 	}
 }
 
@@ -55,7 +58,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	}
 
 	// Generar JWT Token (New)
-	token, err := h.jwtManager.Generate(user.ID, user.Email)
+	accessToken, err := h.jwtManager.Generate(user.ID, user.Email)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":   "Error generando token",
@@ -63,14 +66,31 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		})
 		return
 	}
+	// Generar refresh token si existe el manager
+	var refreshToken string
+	if h.refreshTokenManager != nil {
+		rt, err := h.refreshTokenManager.GenerateRefreshToken()
+		if err == nil {
+			refreshToken = rt
+			// Intentar almacenar el refresh token si existe el repo
+			if h.refreshTokenRepo != nil {
+				_ = h.refreshTokenRepo.Create(c.Request.Context(), &models.RefreshToken{
+					UserID:    user.ID,
+					Token:     refreshToken,
+					ExpiresAt: time.Now().Add(30 * 24 * time.Hour),
+					CreatedAt: time.Now(),
+				})
+			}
+		}
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Login exitoso",
 		"tokens": gin.H{
-			"access_token": accessToken,
+			"access_token":  accessToken,
 			"refresh_token": refreshToken,
-			"expires_in": 3600, // 1 hora en segundos
-		} // Ahora es un JWT real
+			"expires_in":    3600, // 1 hora en segundos
+		},
 		"user": gin.H{
 			"id":    user.ID,
 			"email": user.Email,
@@ -141,15 +161,31 @@ func (h *AuthHandler) Register(c *gin.Context) {
 			"error":   "Error al generar token",
 			"details": err.Error(),
 		})
+		return
+	}
+	// Generar refresh token (si se puede)
+	var refreshToken string
+	if h.refreshTokenManager != nil {
+		if rt, err := h.refreshTokenManager.GenerateRefreshToken(); err == nil {
+			refreshToken = rt
+			if h.refreshTokenRepo != nil {
+				_ = h.refreshTokenRepo.Create(c.Request.Context(), &models.RefreshToken{
+					UserID:    user.ID,
+					Token:     refreshToken,
+					ExpiresAt: time.Now().Add(30 * 24 * time.Hour),
+					CreatedAt: time.Now(),
+				})
+			}
+		}
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "Registro exitoso",
 		"tokens": gin.H{
-			"acess_token": accessToken,
+			"access_token":  token,
 			"refresh_token": refreshToken,
-			"expires_in": 3600,
-		}
+			"expires_in":    3600,
+		},
 		"user": gin.H{
 			"id":         user.ID,
 			"email":      user.Email,
@@ -182,38 +218,45 @@ func (h *AuthHandler) GetProfile(c *gin.Context) {
 	})
 }
 
-func (h *AuthHandler) RefreshToken(c *gin.Context){
+func (h *AuthHandler) RefreshToken(c *gin.Context) {
 	var req struct {
-		RefreshToken string `json: "refresh_token" binding: "required"`
+		RefreshToken string `json:"refresh_token" binding:"required"`
 	}
 
-	if err := c.ShouldBindJSON(&req); err != nil{
+	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Refresh token requerido"})
 		return
 	}
 
+	// Si no hay un repositorio de refresh tokens implementado, devolver 501
+	if h.refreshTokenRepo == nil {
+		c.JSON(http.StatusNotImplemented, gin.H{"error": "Refresh token store not implemented"})
+		return
+	}
+
 	// Verificar refresh token en DB
-	storedToken, err := h.RefreshTokenRepo.GetByToken(c.Request.Context(), req.RefreshToken)
-	if err != nil || storedToken == nil || storedToken.ExpiresAt.Before(time.now()) {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Refresh token invalido"})
+	storedToken, err := h.refreshTokenRepo.GetByToken(c.Request.Context(), req.RefreshToken)
+	if err != nil || storedToken == nil || storedToken.ExpiresAt.Before(time.Now()) {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Refresh token inválido"})
 		return
 	}
 
 	// Generar nuevo acceso token
-	user, err := h.UserRepo.GetUserByID(c.Request.context(), storedToken.UserID)
+	user, err := h.userRepo.GetUserByID(c.Request.Context(), storedToken.UserID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error obteniendo usuario"})
 		return
 	}
-	
+
 	newAccessToken, err := h.jwtManager.Generate(user.ID, user.Email)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generando el token"})
+		return
 	}
 
-	c.JSON(http.StatusOk, gin.H{
+	c.JSON(http.StatusOK, gin.H{
 		"access_token": newAccessToken,
-		"expirest_at": 3600,
+		"expires_in":   3600,
 	})
 
 }

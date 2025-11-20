@@ -48,12 +48,22 @@ func main() {
 		24*time.Hour,                           // Token expira en 24h
 	)
 
+	// Inicializar Refresh Token Manager (opcional)
+	refreshManager := auth.NewRefreshTokenManager(
+		"mi-clave-secreta-refresh",
+		30*24*time.Hour, // 30 dias
+	)
+
 	// inicializar repositorio
 	userRepo := repositories.NewPostgresUserRepository(conn.Conn())
 	log.Println("Repositorio de usuarios inicializado")
 
-	// Inicializar handler en el repositorio
-	authHandler := handlers.NewAuthHandler(userRepo, jwtManager)
+	// Inicializar repositorio de refresh tokens
+	refreshTokenRepo := repositories.NewPostgresRefreshTokenRepository(conn.Conn())
+	log.Println("Repositorio de refresh tokens inicializado")
+
+	// Inicializar handler de autenticación
+	authHandler := handlers.NewAuthHandler(userRepo, refreshTokenRepo, jwtManager, refreshManager)
 	log.Println("Handler de autenticación inicializado")
 
 	// Inicializar el router
@@ -96,6 +106,9 @@ func main() {
 			protected.GET("/profile", authHandler.GetProfile)
 			// Mas rutas protegidas por JWT aqui
 		}
+
+		// ruta para refresh token
+		authGroup.POST("/refresh", authHandler.RefreshToken)
 
 	}
 
