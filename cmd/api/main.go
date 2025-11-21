@@ -10,6 +10,7 @@ import (
 	"tormentus/internal/handlers"
 	"tormentus/internal/middleware"
 	"tormentus/internal/repositories"
+	"tormentus/internal/services"
 	"tormentus/pkg/config"
 
 	"github.com/gin-gonic/gin"
@@ -112,6 +113,24 @@ func main() {
 
 	}
 
+	// Inicializar servicio de precios
+	priceService := services.NewPriceService(nil) // Por ahora sin repo
+
+	// Iniciarlizar con simbolos populares
+	symbols := []string{"btcusdt", "ethusdt", "adausdt"}
+	if err := priceService.Start(symbols); err != nil {
+		log.Printf("No se pudo iniciar servicio de precios: %x", err)
+	} else {
+		defer priceService.Stop() // Defer para cleanup
+	}
+
+	// Inicializar handler de WebSocket
+	wsHandler := handlers.NewWebSocketHandler(priceService)
+
+	// Agregar ruta WebSocket
+	api.GET("/ws", wsHandler.HandlerWebSocket)
+
+	// Iniciar el servidor
 	log.Println("Servidor iniciado en http://localhost:" + cfg.ServerPort)
 	r.Run(":8080")
 }
