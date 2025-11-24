@@ -3,6 +3,9 @@ package main
 import (
 	"context"
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"tormentus/internal/auth"
@@ -113,14 +116,16 @@ func main() {
 
 	}
 
-	// Inicializar servicio de precios
-	priceService := services.NewPriceService(nil) // Por ahora sin repo
+	// Inicializar servicio de precios con Mock
+	priceRepo := repositories.NewMockPriceRepository()  // Repositorio mock
+	priceService := services.NewPriceService(priceRepo) // Por ahora sin repo
 
 	// Iniciarlizar con simbolos populares
 	symbols := []string{"btcusdt", "ethusdt", "adausdt"}
 	if err := priceService.Start(symbols); err != nil {
 		log.Printf("No se pudo iniciar servicio de precios: %x", err)
 	} else {
+		log.Printf("Servicio de precios iniciando correctamente para symbolos: %s", symbols)
 		defer priceService.Stop() // Defer para cleanup
 	}
 
@@ -130,7 +135,26 @@ func main() {
 	// Agregar ruta WebSocket
 	api.GET("/ws", wsHandler.HandlerWebSocket)
 
-	// Iniciar el servidor
-	log.Println("Servidor iniciado en http://localhost:" + cfg.ServerPort)
-	r.Run(":8080")
+	// Setup graceful shutdown
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+
+	// Start server in a goroutine
+	go func() {
+		log.Println("Servidor iniciado en http://localhost:" + cfg.ServerPort)
+		if err := r.Run(":8080"); err != nil {
+			log.Fatal("Error starting server:", err)
+		}
+	}()
+
+	// Wait for interrupt signal
+	<-quit
+	log.Println("Shutting down server...")
+
+	// Cleanup
+	if priceService != nil {
+		priceService.Stop()
+	}
+
+	log.Println("Server exited")
 }

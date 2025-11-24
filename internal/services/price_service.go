@@ -4,12 +4,13 @@ import (
 	"log"
 	"sync"
 
+	"tormentus/internal/exchanges"
 	"tormentus/internal/models"
 	"tormentus/internal/repositories"
 )
 
-type PriceSevice struct {
-	binanceWS   *exchances.BinanceWebSocket
+type PriceService struct {
+	binanceWS   *exchanges.BinanceWebSocket
 	priceRepo   repositories.PriceRepository
 	subscribers map[string]chan models.PriceData //Map con mutex para thread-safety
 	mu          sync.RWMutex
@@ -17,9 +18,9 @@ type PriceSevice struct {
 
 func NewPriceService(priceRepo repositories.PriceRepository) *PriceService {
 	return &PriceService{
-		binanceWS:  exchanges.NewBinanceWebSocker(),
-		priceRepo:  priceRepo,
-		subcribers: make(map[string]chan models.PriceData),
+		binanceWS:   exchanges.NewBinanceWebSocket(),
+		priceRepo:   priceRepo,
+		subscribers: make(map[string]chan models.PriceData),
 	}
 }
 
@@ -42,21 +43,23 @@ func (ps *PriceService) Start(symbols []string) error {
 
 // processPrices - Procesa los precios del WebSocket (corre en goroutine)
 func (ps *PriceService) processPrices() {
-	// Guardar en base de datos (Pendiente)
-	//ps.priceRepo.Save(priceData)
+	for priceData := range ps.binanceWS.GetPriceChannel() {
+		// Guardar en base de datos (Pendiente)
+		//ps.priceRepo.SavePriceData(ctx, &priceData)
 
-	// Notificar a subcriptores
-	ps.NotifySubscribers(priceData)
+		// Notificar a subcriptores
+		ps.NotifySubscribers(priceData)
 
-	// Log para debugging
-	log.Printf(
-		"%s: $%.2f (Vol: %.4f)", 
-        priceData.Symbol, priceData.Price, priceData.Volume
-	)
+		// Log para debugging
+		log.Printf(
+			"%s: $%.2f (Vol: %.4f)",
+			priceData.Symbol, priceData.Price, priceData.Volume,
+		)
+	}
 }
 
 // Subscribe - Permite a componentes subscribirse a updates de precios
-func (ps *priceService) Subscribe(symbol string) <- chan models.PriceData {
+func (ps *PriceService) Subscribe(symbol string) <-chan models.PriceData {
 	ps.mu.Lock()
 	defer ps.mu.Unlock()
 
@@ -66,28 +69,38 @@ func (ps *priceService) Subscribe(symbol string) <- chan models.PriceData {
 	return ch
 }
 
-// notifySubcribers - Notifica a todos los subcriptores de un nuevo precio
-func (ps *PriceService) NotifySubscribers(ps.Subscribers[priceData..Symbol]; exits {
+// NotifySubscribers - Notifica a todos los subcriptores de un nuevo precio
+func (ps *PriceService) NotifySubscribers(priceData models.PriceData) {
+	ps.mu.RLock()
+	subscribers, exists := ps.subscribers[priceData.Symbol]
+	ps.mu.RUnlock()
+
+	if !exists {
+		return
+	}
+
 	// Select non-blocking send
 	select {
-	case ch <- priceData:
+	case subscribers <- priceData:
 		// Enviado exitosamente
 	default:
 		// Subscriber no esta procesando mensajes, limpiar
+		ps.mu.Lock()
 		delete(ps.subscribers, priceData.Symbol)
-		close(ch)
+		close(subscribers)
+		ps.mu.Unlock()
 	}
-})
+}
 
 // Stop - detiene el servicio
 func (ps *PriceService) Stop() {
-    ps.binanceWS.Close()
-    
-    // Limpiar suscriptores
-    ps.mu.Lock()
-    for _, ch := range ps.subscribers {
-        close(ch)
-    }
-    ps.subscribers = make(map[string]chan models.PriceData)
-    ps.mu.Unlock()
+	ps.binanceWS.Close()
+
+	// Limpiar suscriptores
+	ps.mu.Lock()
+	for _, ch := range ps.subscribers {
+		close(ch)
+	}
+	ps.subscribers = make(map[string]chan models.PriceData)
+	ps.mu.Unlock()
 }

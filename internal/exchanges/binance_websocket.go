@@ -10,14 +10,14 @@ import (
 	"tormentus/internal/models"
 
 	"github.com/gorilla/websocket"
-	"golang.org/x/net/websocket"
 )
 
 type BinanceWebSocket struct {
-	conn    *websocket.Conn
-	symbols []string
-	priceCh chan models.PriceData
-	done    chan struct{}
+	conn     *websocket.Conn
+	symbols  []string
+	priceCh  chan models.PriceData
+	done     chan struct{}
+	isClosed bool
 }
 
 // NewBinanceWebsocket - Constructor
@@ -35,10 +35,10 @@ func (b *BinanceWebSocket) Connect(symbols []string) error {
 	// Construir URL de Websocket Binance
 	var streamNames []string
 	for _, symbol := range symbols {
-		streamNames = append(streamNames, fmt.SprintF("%s@ticker", symbol))
+		streamNames = append(streamNames, fmt.Sprintf("%s@ticker", symbol))
 	}
 
-	url := fmt.Sprintf("wss://stream.binance.com:9443/stream?streams=%s", strings.Join(streamNames, "/"))
+	url := fmt.Sprintf("wss://fstream.binance.com/stream?streams=%s", strings.Join(streamNames, "/"))
 
 	var err error
 	b.conn, _, err = websocket.DefaultDialer.Dial(url, nil)
@@ -84,13 +84,20 @@ func (b *BinanceWebSocket) readMessages() {
 
 // processMessage - Procesa un mensaje recibido del websocket
 func (b *BinanceWebSocket) processMessage(message []byte) {
+	log.Printf("📨 Mensaje raw recibido: %s", string(message))
+
 	var msg struct {
 		Stream string `json:"stream"`
 		Data   struct {
-			Symbol    string `json:"s"`
-			Price     string `json:"c"`
-			Volume    string `json:"v"`
-			Timestamp int64  `json:"E"`
+			EventType   string      `json:"e"` // "24hrTicker"
+			EventTime   int64       `json:"E"` // Timestamp del evento (número)
+			Symbol      string      `json:"s"` // "BTCUSDT"
+			LastPrice   json.Number `json:"c"` // Precio de cierre actual
+			Volume      json.Number `json:"v"` // Volumen base asset
+			HighPrice   json.Number `json:"h"` // Precio más alto
+			LowPrice    json.Number `json:"l"` // Precio más bajo
+			OpenPrice   json.Number `json:"o"` // Precio de apertura
+			PriceChange json.Number `json:"p"` // Cambio de precio
 		} `json:"data"`
 	}
 
@@ -99,23 +106,45 @@ func (b *BinanceWebSocket) processMessage(message []byte) {
 		return
 	}
 
-	// Convertir string a float64
-	price, _ := strconv.ParseFloat(msg.Data.Price, 64)
-	volume, _ := strconv.ParseFloat(msg.Data.Volume, 64)
+	// Solo procesar mensajes de tipo "24hrTicker"
+	if msg.Data.EventType != "24hrTicker" {
+		return
+	}
+
+	// verificacion de que tenemos datos válidos
+	if msg.Data.Symbol == "" {
+		log.Printf("⚠️ Mensaje sin símbolo, ignorando")
+		return
+	}
+
+	// Convertir precios a float64
+	currentPrice, err := strconv.ParseFloat(msg.Data.LastPrice.String(), 64)
+	if err != nil {
+		log.Printf("Error parseando precio: %v", err)
+		return
+	}
+
+	volume, err := strconv.ParseFloat(msg.Data.Volume.String(), 64)
+	if err != nil {
+		log.Printf("Error parseando volumen: %v", err)
+		return
+	}
 
 	priceData := models.PriceData{
-		Symbol:     msg.Data.Symbol,
-		Price:      price,
-		Volume:     volume,
-		Timestramp: time.Unix(msg.Data.Timestamp/1000, 0),
+		Symbol:    msg.Data.Symbol,
+		Price:     currentPrice,
+		Volume:    volume,
+		Timestamp: time.Unix(msg.Data.EventTime/1000, 0),
 	}
+
+	log.Printf("Precio procesado: %s - $%.2f", priceData.Symbol, priceData.Price)
 
 	// Select con Timeout para evitar bloqueos
 	select {
 	case b.priceCh <- priceData:
 		// Mensaje enviado exitosamente
 	case <-time.After(100 * time.Millisecond):
-		log.Printf("Canal de preciosa lleno, descartando mensaje")
+		log.Printf("Canal de precios lleno, descartando mensaje")
 	}
 }
 
@@ -126,9 +155,9 @@ func (b *BinanceWebSocket) GetPriceChannel() <-chan models.PriceData {
 
 // Close - cierra la conexion del websocket
 func (h *BinanceWebSocket) Close() {
-	close(b.done)
-	if b.conn != nil {
-		b.conn.Close()
+	close(h.done)
+	if h.conn != nil {
+		h.conn.Close()
 	}
 }
 

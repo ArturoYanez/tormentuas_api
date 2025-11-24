@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 
 	"tormentus/internal/services"
@@ -20,16 +21,16 @@ type WebSocketHandler struct {
 }
 
 func NewWebSocketHandler(priceService *services.PriceService) *WebSocketHandler {
-	return &webSocketHandler{
+	return &WebSocketHandler{
 		priceService: priceService,
 	}
 }
 
 // HandlerWebSocket - maneja conexiones websocket con el frontend
 func (h *WebSocketHandler) HandlerWebSocket(c *gin.Context) {
-	symbol := c.Quesry("symbol") // Ej: "BTCUST"
+	symbol := c.Query("symbol") // Ej: "BTCUSDT"
 	if symbol == "" {
-		c.JSON(http.StatusBadRequest, gin.H("error": "Symbol requerido"))
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Symbol requerido"})
 		return
 	}
 
@@ -47,27 +48,27 @@ func (h *WebSocketHandler) HandlerWebSocket(c *gin.Context) {
 	precioCh := h.priceService.Subscribe(symbol)
 
 	// Groutine para leer mensajes del cliente
-	go h.readClientMessages(conn)
+	go h.readClientMessages(conn, symbol)
 
 	// Enviar updates de precios al cliente
-	for priceData := range priceCh {
-		if err := conn.WriteJSON(priceData); err := nil {
+	for priceData := range precioCh {
+		if err := conn.WriteJSON(priceData); err != nil {
 			log.Printf("Error enviando precio: %x", err)
 			break
 		}
 	}
 }
 
-// readClientMessages - lee mensajes del cliente WebSocket 
-func (h *webSocketHandler) readClientMessages(conn *websocket.Conn, symbol string) {
+// readClientMessages - lee mensajes del cliente WebSocket
+func (h *WebSocketHandler) readClientMessages(conn *websocket.Conn, symbol string) {
 	for {
 		var msg map[string]interface{}
 		if err := conn.ReadJSON(&msg); err != nil {
 			log.Printf("Websocket cerrado: %x", err)
+			return
 		}
-		break
-	}
 
-	log.Printf("Mensaje de cliente %s: %v", symbol, msg)
-	// Procesar ordenes de clientes en el futuro
+		log.Printf("Mensaje de cliente %s: %v", symbol, msg)
+		// Procesar ordenes de clientes en el futuro
+	}
 }

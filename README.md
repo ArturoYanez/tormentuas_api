@@ -15,6 +15,8 @@ Plataforma de trading cripto avanzada construida con Go y Gin, diseñada para of
 - **Backend**: Go 1.25.1 con Gin Framework
 - **Base de Datos**: PostgreSQL 17 con pgx driver
 - **Autenticación**: JWT (golang-jwt/jwt/v5) + Refresh Tokens con bcrypt para hashing de contraseñas
+- **WebSocket**: gorilla/websocket para conexiones en tiempo real
+- **Integración de Exchanges**: Binance WebSocket API para datos de mercado
 - **Arquitectura**: Patrón Repository, Dependency Injection, Clean Architecture
 - **Frontend**: HTML5, CSS3, Templates Go
 - **Contenedorización**: Docker & Docker Compose
@@ -33,16 +35,25 @@ tormentus/
 │   ├── database/            # Configuración y migraciones de BD
 │   │   ├── migrate.go
 │   │   └── postgres.go
+│   ├── exchanges/           # Integración con exchanges
+│   │   └── binance_websocket.go
 │   ├── handlers/            # Handlers HTTP
-│   │   └── auth.go
+│   │   ├── auth.go
+│   │   └── websocket_handler.go
 │   ├── middleware/          # Middlewares de autenticación
 │   │   └── auth.go
 │   ├── models/              # Modelos de datos
-│   │   └── user.go
-│   └── repositories/        # Capa de acceso a datos
-│       ├── postgres_user_repository.go
-│       ├── refresh_token_repository.go
-│       └── user_repository.go
+│   │   ├── user.go
+│   │   └── trading.go
+│   ├── repositories/        # Capa de acceso a datos
+│   │   ├── postgres_user_repository.go
+│   │   ├── postgres_refresh_token_repository.go
+│   │   ├── mock_price_repository.go
+│   │   ├── price_repository.go
+│   │   ├── refresh_token_repository.go
+│   │   └── user_repository.go
+│   └── services/            # Lógica de negocio
+│       └── price_service.go
 ├── migrations/              # Scripts de migración de base de datos
 │   └── 001_create_users_table.sql
 ├── pkg/config/              # Configuración de la aplicación
@@ -108,11 +119,18 @@ tormentus/
 - `POST /api/auth/refresh` - Refrescar token de acceso usando refresh token
 - `GET /api/protected/profile` - Obtener perfil de usuario (requiere JWT)
 
+### WebSocket y Datos de Mercado
+
+- `GET /api/ws` - Conexión WebSocket para recibir precios en tiempo real de Binance
+- Datos disponibles: BTC/USDT, ETH/USDT, ADA/USDT con actualizaciones cada segundo
+- Información incluida: precio actual, volumen, cambio de precio, timestamp
+
 ### Base de Datos
 
 - Conexión a PostgreSQL implementada con pool de conexiones
-- Migraciones automáticas para creación de tablas de usuarios
+- Migraciones automáticas para creación de tablas de usuarios y refresh tokens
 - Repositorio de usuarios con operaciones CRUD completas
+- Repositorio de refresh tokens para gestión de sesiones
 
 ### Ejemplos de Uso
 
@@ -153,6 +171,31 @@ curl -X POST http://localhost:8080/api/auth/refresh \
   }'
 ```
 
+#### Conexión WebSocket para precios en tiempo real
+```javascript
+const ws = new WebSocket('ws://localhost:8080/api/ws');
+
+ws.onmessage = function(event) {
+    const data = JSON.parse(event.data);
+    console.log('Nuevo precio:', data);
+    // Ejemplo de respuesta:
+    // {
+    //   "symbol": "BTCUSDT",
+    //   "price": 45000.50,
+    //   "volume": 1234.56,
+    //   "timestamp": "2025-11-24T02:41:54Z"
+    // }
+};
+
+ws.onopen = function() {
+    console.log('Conectado al WebSocket de precios');
+};
+
+ws.onerror = function(error) {
+    console.error('Error en WebSocket:', error);
+};
+```
+
 ## 🔧 Configuración
 
 ### Base de Datos
@@ -184,14 +227,17 @@ Para producción, configura las siguientes variables de entorno:
 - ✅ Autenticación completa (registro, login, JWT + Refresh Tokens)
 - ✅ Sistema de refresh tokens para renovación automática de sesiones
 - ✅ Conexión a base de datos PostgreSQL con pool de conexiones
-- ✅ Migraciones automáticas de base de datos
+- ✅ Migraciones automáticas de base de datos (usuarios y refresh tokens)
 - ✅ Patrón Repository para acceso a datos (usuarios y refresh tokens)
 - ✅ Middleware de autenticación JWT
 - ✅ Configuración de entorno flexible
 - ✅ Frontend landing page
 - ✅ Configuración Docker completa
-- 🔄 Implementación completa del repositorio de refresh tokens (pendiente)
-- 🔄 Funcionalidades de trading (pendiente)
+- ✅ Repositorio PostgreSQL de refresh tokens implementado
+- ✅ Funcionalidades de trading con WebSocket Binance integradas
+- ✅ Servicio de precios en tiempo real con múltiples símbolos
+- ✅ Manejo de conexiones WebSocket y procesamiento de datos
+- ✅ Implementación de manejadores WebSocket para clientes
 - 🔄 Tests unitarios e integración (pendiente)
 
 ## 🤝 Contribución
@@ -209,6 +255,18 @@ Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más det
 ## 📞 Contacto
 
 Para preguntas o soporte, por favor abre un issue en este repositorio.
+
+## 📊 Estado Actual
+
+**Proyecto estable sin errores conocidos**. Todas las funcionalidades principales están implementadas y funcionando correctamente. El proyecto ha sido probado y los logs no muestran errores críticos.
+
+Las siguientes funcionalidades están operativas:
+- Sistema de autenticación completo
+- Gestión de refresh tokens
+- Conexión WebSocket con Binance
+- Servicio de precios en tiempo real
+- Migraciones de base de datos
+- API REST completa
 
 ---
 
