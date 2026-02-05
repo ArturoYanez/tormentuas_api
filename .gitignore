@@ -1,0 +1,416 @@
+# ============================================
+# Tormentus Trading Platform - .gitignore
+# ============================================
+
+# ============================================
+# Go Backend
+# ============================================
+
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+tormentus
+tormentus.exe
+cmd/api/main
+cmd/api/main.exe
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool
+*.out
+coverage.txt
+coverage.html
+
+# Go workspace file
+go.work
+go.work.sum
+
+# Dependency directories
+vendor/
+
+# Go build cache
+.cache/
+
+# Air live reload
+tmp/
+.air.toml
+
+# ============================================
+# Environment & Configuration
+# ============================================
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+*.env
+
+# Configuration files with secrets
+config.local.yml
+config.local.yaml
+config.local.json
+secrets.yml
+secrets.yaml
+
+# ============================================
+# Database
+# ============================================
+
+# PostgreSQL
+*.sql.backup
+*.sql.bak
+*.dump
+*.backup
+postgres-data/
+pgdata/
+pg_data/
+
+# Database dumps
+*.sql.gz
+*.sql.zip
+
+# ============================================
+# Frontend (React + Vite)
+# ============================================
+
+# Dependencies
+frontend/node_modules/
+jkk/node_modules/
+node_modules/
+
+# Build outputs
+frontend/dist/
+frontend/build/
+jkk/dist/
+jkk/build/
+dist/
+build/
+
+# Vite
+frontend/.vite/
+jkk/.vite/
+.vite/
+
+# Production
+frontend/dist-ssr/
+jkk/dist-ssr/
+
+# Cache
+frontend/.cache/
+jkk/.cache/
+.cache/
+
+# Logs
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/pnpm-debug.log*
+jkk/npm-debug.log*
+jkk/yarn-debug.log*
+jkk/yarn-error.log*
+jkk/pnpm-debug.log*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+.idea/
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# TypeScript
+*.tsbuildinfo
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Optional stylelint cache
+.stylelintcache
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn
+.yarn-integrity
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+
+# ============================================
+# Docker
+# ============================================
+
+# Docker volumes
+docker-compose.override.yml
+.docker/
+docker-data/
+
+# ============================================
+# Logs
+# ============================================
+
+logs/
+*.log
+log/
+*.log.*
+
+# ============================================
+# OS Files
+# ============================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ============================================
+# IDEs and Editors
+# ============================================
+
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+.history/
+*.vsix
+
+# JetBrains IDEs (IntelliJ, GoLand, WebStorm, etc.)
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+.idea_modules/
+
+# Sublime Text
+*.sublime-workspace
+*.sublime-project
+
+# Vim
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-rt-v][a-z]
+[._]ss[a-gi-z]
+[._]sw[a-p]
+Session.vim
+Sessionx.vim
+.netrwhist
+tags
+[._]*.un~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# ============================================
+# Testing
+# ============================================
+
+# Test coverage
+coverage/
+*.cover
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.nyc_output/
+
+# ============================================
+# Temporary Files
+# ============================================
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+.#*
+
+# ============================================
+# Security & Secrets
+# ============================================
+
+# Private keys
+*.pem
+*.key
+*.p12
+*.pfx
+*.cer
+*.crt
+id_rsa
+id_rsa.pub
+
+# JWT secrets
+jwt_secret.txt
+jwt.key
+
+# API keys
+api_keys.txt
+credentials.json
+
+# ============================================
+# Build & Distribution
+# ============================================
+
+# Build artifacts
+bin/
+obj/
+target/
+release/
+
+# Distribution
+dist-ssr/
+*.tar.gz
+*.zip
+*.rar
+*.7z
+
+# ============================================
+# Documentation (Generated)
+# ============================================
+
+# Generated documentation
+docs/_build/
+docs/.doctrees/
+site/
+
+# ============================================
+# Project Specific
+# ============================================
+
+# Compiled executables
+tormentus
+tormentus.exe
+
+# Web templates (if generated)
+web/static/dist/
+
+# Uploads directory (user uploaded files)
+uploads/
+public/uploads/
+
+# Session files
+sessions/
+
+# Cache directories
+.cache/
+cache/
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# ============================================
+# CI/CD
+# ============================================
+
+# GitHub Actions
+.github/workflows/*.log
+
+# ============================================
+# Monitoring & Metrics
+# ============================================
+
+# Prometheus
+prometheus_data/
+
+# Grafana
+grafana_data/
+
+# ============================================
+# Keep These Files
+# ============================================
+
+# Keep empty directories with .gitkeep
+!.gitkeep
+
+# Keep example configuration files
+!.env.example
+!config.example.yml
+!config.example.yaml
+!config.example.json
+
+# Keep migration files (important!)
+!migrations/*.sql
+!migrations/**/*.sql
+
+# Keep documentation
+!*.md
+!docs/**/*.md
