@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.title}}</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">Tormentus</div>
+            <div class="nav-links">
+                <a href="#features">Características</a>
+                <a href="#markets">Mercados</a>
+                <a href="#tournaments">Torneos</a>
+            </div>
+            <div class="auth-buttons">
+                <a href="/login" class="btn btn-outline">Iniciar Sesión</a>
+                <a href="/register" class="btn btn-primary">Registrarse</a>
+            </div>
+        </nav>
+    </header>
+    
+    <main>
+        <section class="hero">
+            <div class="container">
+                <h1>Plataforma de Trading Avanzada</h1>
+                <p>Opera con seguridad y velocidad institucional en múltiples mercados</p>
+                <div class="cta-buttons">
+                    <a href="/register" class="btn btn-large btn-primary">Comenzar Ahora</a>
+                    <a href="#features" class="btn btn-large btn-outline">Saber Más</a>
+                </div>
+            </div>
+        </section>
+
+        <section id="features" class="features">
+            <div class="container">
+                <h2>Características Principales</h2>
+                <div class="feature-grid">
+                    <div class="feature">
+                        <div class="feature-icon">⚡</div>
+                        <h3>Ejecución Rápida</h3>
+                        <p>Latencia menor a 1ms para operaciones instantáneas</p>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">🔒</div>
+                        <h3>Seguridad Bancaria</h3>
+                        <p>Encriptación de grado militar para tus fondos</p>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">📊</div>
+                        <h3>Gráficos en Tiempo Real</h3>
+                        <p>Datos actualizados cada segundo via WebSocket</p>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">🏆</div>
+                        <h3>Torneos</h3>
+                        <p>Compite con otros traders y gana premios</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="markets" class="markets">
+            <div class="container">
+                <h2>Mercados Disponibles</h2>
+                <div class="market-grid">
+                    <div class="market-card">
+                        <div class="market-icon">₿</div>
+                        <h3>Criptomonedas</h3>
+                        <p>BTC, ETH, SOL y más de 50 criptos</p>
+                    </div>
+                    <div class="market-card">
+                        <div class="market-icon">💱</div>
+                        <h3>Forex</h3>
+                        <p>EUR/USD, GBP/USD y 100+ pares</p>
+                    </div>
+                    <div class="market-card">
+                        <div class="market-icon">🥇</div>
+                        <h3>Materias Primas</h3>
+                        <p>Oro, Plata, Petróleo y más</p>
+                    </div>
+                    <div class="market-card">
+                        <div class="market-icon">📈</div>
+                        <h3>Acciones</h3>
+                        <p>Apple, Tesla, Google y más</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="tournaments" class="tournaments-section">
+            <div class="container">
+                <h2>Torneos de Trading</h2>
+                <p class="section-subtitle">Compite, demuestra tus habilidades y gana premios</p>
+                <div class="tournament-preview">
+                    <div class="tournament-card">
+                        <span class="badge free">GRATIS</span>
+                        <h3>Torneo Principiantes</h3>
+                        <p>Premio: $500</p>
+                        <a href="/register" class="btn btn-primary">Participar</a>
+                    </div>
+                    <div class="tournament-card">
+                        <span class="badge premium">$100</span>
+                        <h3>Torneo Oro</h3>
+                        <p>Premio: Pool Variable</p>
+                        <a href="/register" class="btn btn-primary">Participar</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 Tormentus. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,102 @@
+-- =====================================================
+-- MIGRACIÓN MAESTRA - USUARIO CLIENTE
+-- Ejecuta todas las tablas en orden correcto
+-- =====================================================
+
+-- Este archivo sirve como referencia del orden de ejecución
+-- Las migraciones individuales están en archivos separados
+
+-- ORDEN DE EJECUCIÓN:
+-- 001_users.sql
+-- 002_user_sessions.sql
+-- 003_user_settings.sql
+-- 004_kyc_documents.sql
+-- 005_kyc_status.sql
+-- 006_wallets.sql
+-- 007_transactions.sql
+-- 008_deposit_addresses.sql
+-- 009_withdrawal_requests.sql
+-- 010_trades.sql
+-- 011_trade_markers.sql
+-- 012_price_alerts.sql
+-- 013_chart_drawings.sql
+-- 014_user_favorites.sql
+-- 015_bonuses.sql
+-- 016_user_bonuses.sql
+-- 017_promo_codes.sql
+-- 018_referrals.sql
+-- 019_referral_commissions.sql
+-- 020_referral_tiers.sql
+-- 021_notifications.sql
+-- 022_notification_settings.sql
+-- 023_tournaments.sql
+-- 024_tournament_participants.sql
+-- 025_tournament_prizes.sql
+-- 026_courses.sql
+-- 027_course_lessons.sql
+-- 028_user_course_progress.sql
+-- 029_user_lesson_progress.sql
+-- 030_tutorial_videos.sql
+-- 031_glossary_terms.sql
+-- 032_user_certificates.sql
+-- 033_markets.sql
+-- 034_trading_pairs.sql
+-- 035_support_tickets.sql
+-- 036_support_messages.sql
+-- 037_support_video_calls.sql
+-- 038_faqs.sql
+-- 039_support_ratings.sql
+-- 040_tournament_rebuys.sql
+-- 041_tournament_rules.sql
+-- 042_tournament_leaderboard_snapshots.sql
+-- 043_platform_settings.sql
+-- 044_trading_hours.sql
+-- 045_maintenance_windows.sql
+-- 046_activity_logs.sql
+-- 047_login_history.sql
+-- 048_security_events.sql
+-- 049_live_chat_sessions.sql
+-- 050_live_chat_messages.sql
+-- 051_user_levels.sql
+-- 052_user_achievements.sql
+-- 053_daily_rewards.sql
+-- 054_cashback.sql
+-- 055_copy_trading.sql
+-- 056_trading_signals.sql
+-- 057_user_statistics.sql
+-- 058_price_history.sql
+-- 059_indicators.sql
+-- 060_chart_templates.sql
+-- 061_watchlists.sql
+-- 062_user_pin.sql
+-- 063_countries.sql
+-- 064_terms_conditions.sql
+-- 065_push_tokens.sql
+-- 066_announcements.sql
+-- 067_email_templates.sql
+-- 068_chart_layouts.sql
+-- 069_chart_screenshots.sql
+-- 070_chart_comparisons.sql
+-- 071_backtesting_sessions.sql
+-- 072_payment_methods.sql
+-- 073_user_daily_statistics.sql
+-- 074_user_symbol_statistics.sql
+-- 075_withdrawal_limits.sql
+-- 076_cashback_transactions.sql
+-- 077_loyalty_points.sql
+-- 078_chart_indicators.sql
+-- 079_price_ticks.sql
+-- 080_copy_trades.sql
+-- 081_user_signal_subscriptions.sql
+-- 082_demo_resets.sql
+-- 083_practice_challenges.sql
+-- 084_user_devices.sql
+-- 085_api_keys.sql
+-- 086_user_preferences.sql
+-- 087_trade_history_exports.sql
+-- 088_user_notes.sql
+-- 089_trading_journal.sql
+-- 090_economic_calendar.sql
+-- 091_market_news.sql
+
+-- TOTAL: 91 tablas para el usuario cliente

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.title}}</title>
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.min.js"></script>
+</head>
+<body>
+    <!-- Modal de Verificación -->
+    <div id="verificationModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h2>⚠️ Verificación Requerida</h2>
+            <p>Para poder operar, necesitas verificar tu cuenta.</p>
+            <p>Esto nos ayuda a mantener la plataforma segura.</p>
+            <button onclick="showVerificationForm()" class="btn btn-primary">Verificar Ahora</button>
+            <button onclick="closeModal('verificationModal')" class="btn btn-outline">Más Tarde</button>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="dashboard-header">
+        <div class="header-left">
+            <div class="logo">Tormentus</div>
+            <nav class="main-nav">
+                <a href="#" class="nav-item active" data-view="trading">Trading</a>
+                <a href="#" class="nav-item" data-view="tournaments">Torneos</a>
+                <a href="#" class="nav-item" data-view="history">Historial</a>
+            </nav>
+        </div>
+        <div class="header-right">
+            <div class="balance-display">
+                <span class="balance-label">Balance:</span>
+                <span id="userBalance" class="balance-amount">$0.00</span>
+            </div>
+            <div class="user-menu">
+                <span id="userName">Usuario</span>
+                <button onclick="logout()" class="btn btn-sm btn-outline">Salir</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="dashboard-main">
+        <!-- Sidebar de Mercados -->
+        <aside class="markets-sidebar">
+            <div class="market-tabs">
+                <button class="market-tab active" data-market="crypto">₿ Cripto</button>
+                <button class="market-tab" data-market="forex">💱 Forex</button>
+                <button class="market-tab" data-market="commodities">🥇 Materias</button>
+                <button class="market-tab" data-market="stocks">📈 Acciones</button>
+            </div>
+            <div class="market-search">
+                <input type="text" id="marketSearch" placeholder="Buscar activo...">
+            </div>
+            <div id="assetList" class="asset-list">
+                <!-- Assets se cargan dinámicamente -->
+            </div>
+        </aside>
+
+        <!-- Área de Trading -->
+        <section class="trading-area">
+            <!-- Pares Activos -->
+            <div class="active-pairs">
+                <div id="activePairsList" class="pairs-list">
+                    <!-- Pares activos se muestran aquí -->
+                </div>
+                <button id="addPairBtn" class="add-pair-btn">+</button>
+            </div>
+
+            <!-- Gráfico -->
+            <div class="chart-container">
+                <div class="chart-header">
+                    <div class="chart-symbol">
+                        <span id="currentSymbol">BTC/USDT</span>
+                        <span id="currentPrice" class="price">$0.00</span>
+                        <span id="priceChange" class="change positive">+0.00%</span>
+                    </div>
+                    <div class="chart-timeframes">
+                        <button class="tf-btn" data-tf="1">1s</button>
+                        <button class="tf-btn active" data-tf="5">5s</button>
+                        <button class="tf-btn" data-tf="15">15s</button>
+                        <button class="tf-btn" data-tf="30">30s</button>
+                        <button class="tf-btn" data-tf="60">1m</button>
+                    </div>
+                </div>
+                <div id="chart"></div>
+            </div>
+
+            <!-- Panel de Trading -->
+            <div class="trading-panel">
+                <div class="trade-amount">
+                    <label>Monto de Inversión</label>
+                    <div class="amount-input">
+                        <button onclick="adjustAmount(-10)">-</button>
+                        <input type="number" id="tradeAmount" value="100" min="1">
+                        <button onclick="adjustAmount(10)">+</button>
+                    </div>
+                    <div class="quick-amounts">
+                        <button onclick="setAmount(10)">$10</button>
+                        <button onclick="setAmount(50)">$50</button>
+                        <button onclick="setAmount(100)">$100</button>
+                        <button onclick="setAmount(500)">$500</button>
+                    </div>
+                </div>
+
+                <div class="trade-duration">
+                    <label>Duración</label>
+                    <div class="duration-options">
+                        <button class="duration-btn" data-duration="30">30s</button>
+                        <button class="duration-btn active" data-duration="60">1m</button>
+                        <button class="duration-btn" data-duration="120">2m</button>
+                        <button class="duration-btn" data-duration="300">5m</button>
+                    </div>
+                </div>
+
+                <div class="trade-payout">
+                    <span>Payout: <strong>85%</strong></span>
+                    <span>Ganancia potencial: <strong id="potentialProfit">$85.00</strong></span>
+                </div>
+
+                <div class="trade-buttons">
+                    <button id="buyBtn" class="trade-btn buy" onclick="placeTrade('up')">
+                        <span class="arrow">▲</span>
+                        <span>COMPRAR</span>
+                        <span class="label">Subir</span>
+                    </button>
+                    <button id="sellBtn" class="trade-btn sell" onclick="placeTrade('down')">
+                        <span class="arrow">▼</span>
+                        <span>VENDER</span>
+                        <span class="label">Bajar</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Panel de Operaciones Activas -->
+        <aside class="trades-sidebar">
+            <h3>Operaciones Activas</h3>
+            <div id="activeTradesList" class="active-trades">
+                <!-- Trades activos se muestran aquí -->
+                <p class="no-trades">No hay operaciones activas</p>
+            </div>
+        </aside>
+    </main>
+
+    <script src="/static/js/dashboard.js"></script>
+</body>
+</html>
