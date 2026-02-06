@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:17
+    restart: always
+    environment:
+      POSTGRES_DB: tormentus_dev
+      POSTGRES_USER: tormentus_user
+      POSTGRES_PASSWORD: tormentus_password
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  backend:
+    # Asume que hay un Dockerfile en la raiz del repo que construye la app Go.
+    build:
+      context: .
+    restart: on-failure
+    env_file: .env
+    depends_on:
+      - postgres
+    ports:
+      - "8080:8080"
+    # Para desarrollo rápido, sobreescribe el comando con 'go run' si prefieres.
+    # command: go run cmd/api/main.go
+
+  frontend:
+    # Asume que hay un Dockerfile en ./frontend que sirve la app Vite/React.
+    build:
+      context: ./frontend
+    restart: on-failure
+    env_file: .env
+    depends_on:
+      - backend
+    ports:
+      - "5173:5173"
+    # Para desarrollo con Vite expuesto en todas las interfaces:
+    # command: npm run dev -- --host 0.0.0.0
+
+volumes:
+  pgdata:
+    name: tormentus_pgdata
+
+# NOTAS:
+# - Este archivo es un ejemplo. Ajusta los 'build' y 'command' según tus Dockerfiles locales.
+# - Usa .env para configuración sensible y no subas secretos al repo.

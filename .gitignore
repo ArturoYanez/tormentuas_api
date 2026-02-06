@@ -384,6 +384,11 @@ cache/
 # GitHub Actions
 .github/workflows/*.log
 
+# Local environment overrides and secrets (keep ignored)
+# .env is already listed earlier but keep wildcard forms
+.env
+.env.*
+docker-compose.override.yml
 # ============================================
 # Monitoring & Metrics
 # ============================================
