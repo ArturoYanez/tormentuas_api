@@ -43,13 +43,14 @@ tormentus/
 │       ├── postgres_user_repository.go
 │       ├── refresh_token_repository.go
 │       └── user_repository.go
+├── pkg/config/              # Configuración centralizada con validación
+│   └── config.go
+├── tests/                   # Tests y scripts de verificación
+│   └── test_config.go
 ├── migrations/              # Scripts de migración de base de datos
 │   └── 001_create_users_table.sql
-# Tormentus
-
-Plataforma de trading por módulos desarrollada en Go (Gin) con frontend en React/Vite.
-
-Este README contiene instrucciones de instalación, ejecución, documentación básica del API y un plan de próximos pasos recomendados para el desarrollo.
+└── frontend/                # Aplicación React (Vite + TypeScript)
+```
 
 ---
 
@@ -122,9 +123,11 @@ DB_USER=tormentus_user
 DB_PASSWORD=tormentus_password
 DB_NAME=tormentus_dev
 SERVER_PORT=8080
-JWT_SECRET=change_me_in_production
+JWT_SECRET=change_me_in_production_minimo_32_caracteres
 CORS_ALLOWED_ORIGINS=http://localhost:5173
 ```
+
+> **Nota**: `JWT_SECRET` debe tener al menos 32 caracteres. La aplicación valida la configuración al arrancar y no iniciará si es inválida.
 
 Si aún no existe, añadir un `.env.example` al repo con estos valores (placeholder).
 
@@ -145,6 +148,22 @@ ls -1 migrations | wc -l
 
 ---
 
+## Verificación de configuración
+
+Para comprobar que la configuración se carga correctamente:
+
+```bash
+go run tests/test_config.go
+```
+
+O ejecutar tests (cuando se migren a `*_test.go`):
+
+```bash
+go test ./...
+```
+
+---
+
 ## API (resumen)
 
 - `POST /api/auth/register` — Registrar usuario
@@ -158,11 +177,16 @@ Usar header: `Authorization: Bearer <token>`
 
 ## Estado del proyecto (observaciones)
 
-- Backend: estructura modular en `internal/`.
-- Autenticación: implementada con JWT y refresh tokens.
-- Migraciones: existe un gran histórico SQL en `migrations/`.
-- Frontend: proyecto React + Vite con `frontend/package.json`.
-- `docker-compose.yml` aparece en la documentación pero no se encontró en el repo raíz; confirmar si debe añadirse.
+- **Backend**: estructura modular en `internal/`.
+- **Autenticación**: implementada con JWT y refresh tokens.
+- **Configuración**: `pkg/config` centralizado con:
+  - Carga de variables de entorno vía godotenv
+  - Método `Validate()` que valida DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME y JWT_SECRET (mín. 32 caracteres)
+  - Validación al arranque en `main.go` — la aplicación no inicia si la configuración es inválida
+- **Tests**: carpeta `tests/` con `test_config.go` para verificación de carga de configuración.
+- **Migraciones**: existe un gran histórico SQL en `migrations/`.
+- **Frontend**: proyecto React + Vite con `frontend/package.json`.
+- **Pendiente**: `docker-compose.yml` no encontrado en repo raíz; confirmar si debe añadirse.
 
 ---
 
@@ -170,7 +194,7 @@ Usar header: `Authorization: Bearer <token>`
 
 1. Añadir o confirmar `docker-compose.yml` y `Dockerfile`s (backend y frontend).
 2. Añadir `.env.example` y un `docs/ENV.md` describiendo variables.
-3. Implementar tests y pipeline CI (GitHub Actions) para `go test ./...` y `npm run build`.
+3. **En progreso**: Extender tests — migrar `tests/test_config.go` a unit tests con `*_test.go` y configurar pipeline CI (GitHub Actions) para `go test ./...` y `npm run build`.
 4. Añadir OpenAPI/Swagger para documentar el API.
 5. Auditar y consolidar migraciones grandes; asegurar idempotencia.
 6. Añadir observabilidad: logs estructurados, métricas (Prometheus) y trazas.
