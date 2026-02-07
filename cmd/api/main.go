@@ -40,6 +40,9 @@ func (w *UserRepoWrapper) GetBalance(ctx context.Context, userID int64, isDemo b
 func main() {
 	// Cargar configuración
 	cfg := config.Load()
+	if err := cfg.Validate(); err != nil {
+		log.Fatal("Configuración inválida:", err)
+	}
 
 	// Conectar a la base de datos
 	db, err := database.NewDB(cfg)
