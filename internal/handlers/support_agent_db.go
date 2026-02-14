@@ -2463,7 +2463,7 @@ func (h *SupportAgentDBHandler) UpdateVideoCallStatus(c *gin.Context) {
 // GetAISuggestions obtiene sugerencias de IA
 func (h *SupportAgentDBHandler) GetAISuggestions(c *gin.Context) {
 	ctx := c.Request.Context()
-	ticketID, _ := strconv.ParseInt(c.Param("ticketId"), 10, 64)
+	ticketID, _ := strconv.ParseInt(c.Param("id"), 10, 64)
 
 	suggestions, err := h.repo.GetAISuggestions(ctx, ticketID)
 	if err != nil {

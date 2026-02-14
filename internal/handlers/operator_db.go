@@ -379,7 +379,6 @@ func (h *OperatorDBHandler) GetMyPermissions(c *gin.Context) {
 	c.JSON(http.StatusOK, permissions)
 }
 
-
 // ========== TOURNAMENT MANAGEMENT ==========
 
 // GetTournamentActions obtiene acciones sobre torneos
@@ -509,7 +508,6 @@ func (h *OperatorDBHandler) AddUserToTournament(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Usuario agregado al torneo"})
 }
-
 
 // ========== USER MANAGEMENT ==========
 
@@ -652,7 +650,6 @@ func (h *OperatorDBHandler) RejectBalanceAdjustment(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Ajuste rechazado"})
 }
 
-
 // GetUserStatusChanges obtiene cambios de estado
 func (h *OperatorDBHandler) GetUserStatusChanges(c *gin.Context) {
 	userID, err := strconv.ParseInt(c.Param("userId"), 10, 64)
@@ -722,11 +719,11 @@ func (h *OperatorDBHandler) CreateTradingBlock(c *gin.Context) {
 	}
 
 	var req struct {
-		BlockType      string    `json:"block_type"`
-		BlockedSymbols []string  `json:"blocked_symbols"`
-		MaxAmount      *float64  `json:"max_amount"`
-		Reason         string    `json:"reason" binding:"required"`
-		ExpiresAt      *string   `json:"expires_at"`
+		BlockType      string   `json:"block_type"`
+		BlockedSymbols []string `json:"blocked_symbols"`
+		MaxAmount      *float64 `json:"max_amount"`
+		Reason         string   `json:"reason" binding:"required"`
+		ExpiresAt      *string  `json:"expires_at"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Razón requerida"})
@@ -874,7 +871,6 @@ func (h *OperatorDBHandler) RemoveMonitoredUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Usuario removido de monitoreo"})
 }
 
-
 // ========== PART 3: TRADE CONTROL ==========
 
 // GetTradeInterventions obtiene intervenciones de trades
@@ -936,7 +932,6 @@ func (h *OperatorDBHandler) RevertTradeIntervention(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Intervención revertida"})
 }
-
 
 // GetTradeFlags obtiene banderas de trades
 func (h *OperatorDBHandler) GetTradeFlags(c *gin.Context) {
@@ -1045,7 +1040,6 @@ func (h *OperatorDBHandler) EscalateTradeFlag(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Bandera escalada"})
 }
 
-
 // GetTradeCancellations obtiene cancelaciones de trades
 func (h *OperatorDBHandler) GetTradeCancellations(c *gin.Context) {
 	status := c.Query("status")
@@ -1106,7 +1100,6 @@ func (h *OperatorDBHandler) ProcessTradeCancellation(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Cancelación procesada"})
 }
 
-
 // GetForcedTradeResults obtiene resultados forzados
 func (h *OperatorDBHandler) GetForcedTradeResults(c *gin.Context) {
 	status := c.Query("status")
@@ -1123,13 +1116,13 @@ func (h *OperatorDBHandler) GetForcedTradeResults(c *gin.Context) {
 // CreateForcedTradeResult crea un resultado forzado
 func (h *OperatorDBHandler) CreateForcedTradeResult(c *gin.Context) {
 	var req struct {
-		TradeID               int64    `json:"trade_id" binding:"required"`
-		UserID                int64    `json:"user_id" binding:"required"`
-		ForcedResult          string   `json:"forced_result" binding:"required"`
-		ForcedPayout          *float64 `json:"forced_payout"`
-		Reason                string   `json:"reason" binding:"required"`
-		Justification         string   `json:"justification"`
-		RequiresSeniorApproval bool    `json:"requires_senior_approval"`
+		TradeID                int64    `json:"trade_id" binding:"required"`
+		UserID                 int64    `json:"user_id" binding:"required"`
+		ForcedResult           string   `json:"forced_result" binding:"required"`
+		ForcedPayout           *float64 `json:"forced_payout"`
+		Reason                 string   `json:"reason" binding:"required"`
+		Justification          string   `json:"justification"`
+		RequiresSeniorApproval bool     `json:"requires_senior_approval"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Datos inválidos"})
@@ -1185,7 +1178,6 @@ func (h *OperatorDBHandler) RevertForcedResult(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Resultado revertido"})
 }
 
-
 // GetTradeReviewQueue obtiene cola de revisión
 func (h *OperatorDBHandler) GetTradeReviewQueue(c *gin.Context) {
 	status := c.Query("status")
@@ -1240,7 +1232,6 @@ func (h *OperatorDBHandler) CompleteTradeReview(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Revisión completada"})
 }
-
 
 // GetTradePatterns obtiene patrones detectados
 func (h *OperatorDBHandler) GetTradePatterns(c *gin.Context) {
@@ -1304,7 +1295,6 @@ func (h *OperatorDBHandler) UpdatePatternStatus(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Patrón actualizado"})
 }
 
-
 // GetTradeLimitOverrides obtiene sobrescrituras de límites
 func (h *OperatorDBHandler) GetTradeLimitOverrides(c *gin.Context) {
 	userID, _ := strconv.ParseInt(c.Query("user_id"), 10, 64)
@@ -1322,11 +1312,11 @@ func (h *OperatorDBHandler) GetTradeLimitOverrides(c *gin.Context) {
 // CreateTradeLimitOverride crea una sobrescritura de límite
 func (h *OperatorDBHandler) CreateTradeLimitOverride(c *gin.Context) {
 	var req struct {
-		UserID    int64    `json:"user_id" binding:"required"`
-		LimitType string   `json:"limit_type" binding:"required"`
-		NewLimit  float64  `json:"new_limit" binding:"required"`
-		Reason    string   `json:"reason" binding:"required"`
-		ExpiresAt *string  `json:"expires_at"`
+		UserID    int64   `json:"user_id" binding:"required"`
+		LimitType string  `json:"limit_type" binding:"required"`
+		NewLimit  float64 `json:"new_limit" binding:"required"`
+		Reason    string  `json:"reason" binding:"required"`
+		ExpiresAt *string `json:"expires_at"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Datos inválidos"})
@@ -1363,7 +1353,6 @@ func (h *OperatorDBHandler) DeactivateTradeLimitOverride(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Sobrescritura desactivada"})
 }
-
 
 // ========== PART 4: ALERT SYSTEM ==========
 
@@ -1430,7 +1419,6 @@ func (h *OperatorDBHandler) CreateOperatorAlert(c *gin.Context) {
 	}
 	c.JSON(http.StatusCreated, gin.H{"id": id, "message": "Alerta creada"})
 }
-
 
 // AcknowledgeAlert reconoce una alerta
 func (h *OperatorDBHandler) AcknowledgeAlert(c *gin.Context) {
@@ -1539,7 +1527,6 @@ func (h *OperatorDBHandler) GetUnreadAlertCount(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"count": count})
 }
 
-
 // GetAlertRules obtiene reglas de alertas
 func (h *OperatorDBHandler) GetAlertRules(c *gin.Context) {
 	activeOnly := c.Query("active_only") != "false"
@@ -1613,7 +1600,6 @@ func (h *OperatorDBHandler) DeleteAlertRule(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Regla eliminada"})
 }
-
 
 // EscalateAlert escala una alerta
 func (h *OperatorDBHandler) EscalateAlert(c *gin.Context) {
@@ -1699,7 +1685,6 @@ func (h *OperatorDBHandler) AddAlertComment(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"id": id, "message": "Comentario agregado"})
 }
 
-
 // GetAlertSubscriptions obtiene suscripciones del operador
 func (h *OperatorDBHandler) GetAlertSubscriptions(c *gin.Context) {
 	operatorID := h.getOperatorID(c)
@@ -1753,7 +1738,6 @@ func (h *OperatorDBHandler) GetAlertStats(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, stats)
 }
-
 
 // ========== PART 5: ASSET CONFIGURATION ==========
 
@@ -1818,7 +1802,6 @@ func (h *OperatorDBHandler) UpdateAssetCategory(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Categoría actualizada"})
 }
-
 
 // GetTradingAssets obtiene activos de trading
 func (h *OperatorDBHandler) GetTradingAssets(c *gin.Context) {
@@ -1934,10 +1917,9 @@ func (h *OperatorDBHandler) ToggleAssetStatus(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Estado actualizado"})
 }
 
-
 // GetAssetPayoutRules obtiene reglas de payout
 func (h *OperatorDBHandler) GetAssetPayoutRules(c *gin.Context) {
-	assetID, err := strconv.ParseInt(c.Param("assetId"), 10, 64)
+	assetID, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "ID de activo inválido"})
 		return
@@ -1953,7 +1935,7 @@ func (h *OperatorDBHandler) GetAssetPayoutRules(c *gin.Context) {
 
 // CreateAssetPayoutRule crea una regla de payout
 func (h *OperatorDBHandler) CreateAssetPayoutRule(c *gin.Context) {
-	assetID, err := strconv.ParseInt(c.Param("assetId"), 10, 64)
+	assetID, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "ID de activo inválido"})
 		return
@@ -1994,7 +1976,6 @@ func (h *OperatorDBHandler) DeleteAssetPayoutRule(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Regla eliminada"})
 }
-
 
 // ========== TEAM CHAT ==========
 
@@ -2073,7 +2054,6 @@ func (h *OperatorDBHandler) LeaveChatChannel(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Salió del canal"})
 }
-
 
 // GetChannelMessages obtiene mensajes de un canal
 func (h *OperatorDBHandler) GetChannelMessages(c *gin.Context) {
@@ -2183,7 +2163,6 @@ func (h *OperatorDBHandler) PinChannelMessage(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Mensaje fijado/desfijado"})
 }
-
 
 // GetDirectMessages obtiene mensajes directos
 func (h *OperatorDBHandler) GetDirectMessages(c *gin.Context) {
@@ -2296,7 +2275,6 @@ func (h *OperatorDBHandler) RemoveChatMessageReaction(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Reacción removida"})
 }
 
-
 // ========== PART 6: ACTIVITY LOGS ==========
 
 // GetActivityLogs obtiene logs de actividad
@@ -2362,7 +2340,6 @@ func (h *OperatorDBHandler) GetLoginAttempts(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, attempts)
 }
-
 
 // ========== REAL-TIME MONITORING ==========
 
@@ -2447,7 +2424,6 @@ func (h *OperatorDBHandler) GetRealtimeAlerts(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, alerts)
 }
-
 
 // GetMonitoringThresholds obtiene umbrales de monitoreo
 func (h *OperatorDBHandler) GetMonitoringThresholds(c *gin.Context) {
@@ -2800,7 +2776,6 @@ func (h *OperatorDBHandler) DeleteCustomDashboard(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Dashboard eliminado"})
 }
 
-
 // ========== PART 8: SECURITY ==========
 
 // GetSecuritySessions obtiene sesiones de seguridad del operador
@@ -3105,7 +3080,6 @@ func (h *OperatorDBHandler) GetPasswordPolicies(c *gin.Context) {
 	c.JSON(http.StatusOK, policies)
 }
 
-
 // ========== PART 9: NOTIFICATIONS & STATISTICS ==========
 
 // GetOperatorNotifications obtiene notificaciones del operador
@@ -3345,7 +3319,6 @@ func (h *OperatorDBHandler) GetFinancialStatsAggregate(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, stats)
 }
-
 
 // ========== PART 10: FINAL FEATURES ==========
 

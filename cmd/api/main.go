@@ -174,8 +174,8 @@ func main() {
 	})
 
 	// Servir archivos estáticos
-	r.Static("/static", "./web/static")
-	r.LoadHTMLGlob("web/templates/*")
+	r.Static("/static", "./frontend/dist/assets")
+	r.LoadHTMLGlob("./frontend/dist/index.html")
 
 	// ============ RUTAS PÚBLICAS ============
 
@@ -205,6 +205,11 @@ func main() {
 		c.HTML(200, "dashboard.html", gin.H{
 			"title": "Dashboard - Tormentus",
 		})
+	})
+
+	// Ruta para el archivo index.html
+	r.NoRoute(func(c *gin.Context) {
+		c.File("./frontend/dist/index.html")
 	})
 
 	// WebSocket (público para precios)
@@ -622,7 +627,7 @@ func main() {
 		supportAgent.PUT("/video-calls/:id/status", supportAgentDBHandler.UpdateVideoCallStatus)
 
 		// AI Suggestions
-		supportAgent.GET("/tickets/:ticketId/ai-suggestions", supportAgentDBHandler.GetAISuggestions)
+		supportAgent.GET("/tickets/:id/ai-suggestions", supportAgentDBHandler.GetAISuggestions)
 		supportAgent.POST("/ai-suggestions/:id/use", supportAgentDBHandler.MarkAISuggestionUsed)
 
 		// Roles & Permissions
@@ -894,9 +899,9 @@ func main() {
 		operator.POST("/trading-assets", operatorDBHandler.CreateTradingAsset)
 		operator.PUT("/trading-assets/:id", operatorDBHandler.UpdateTradingAsset)
 		operator.POST("/trading-assets/:id/toggle", operatorDBHandler.ToggleAssetStatus)
-		operator.GET("/trading-assets/:assetId/payout-rules", operatorDBHandler.GetAssetPayoutRules)
-		operator.POST("/trading-assets/:assetId/payout-rules", operatorDBHandler.CreateAssetPayoutRule)
-		operator.DELETE("/trading-assets/:assetId/payout-rules/:ruleId", operatorDBHandler.DeleteAssetPayoutRule)
+		operator.GET("/trading-assets/:id/payout-rules", operatorDBHandler.GetAssetPayoutRules)
+		operator.POST("/trading-assets/:id/payout-rules", operatorDBHandler.CreateAssetPayoutRule)
+		operator.DELETE("/trading-assets/:id/payout-rules/:ruleId", operatorDBHandler.DeleteAssetPayoutRule)
 
 		// ========== PART 5: Team Chat ==========
 		operator.GET("/chat/channels", operatorDBHandler.GetChatChannels)
