@@ -265,65 +265,6 @@ export default function AuthPage() {
               </button>
             </div>
 
-            {/* Quick Login - User Selection */}
-            {mode === 'login' && (
-              <div className="mb-6">
-                <label className="block text-xs text-gray-500 mb-2">Selecciona un tipo de usuario</label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {TEST_USERS.map((testUser) => (
-                    <button
-                      key={testUser.email}
-                      onClick={() => handleSelectUser(testUser.email)}
-                      className={`p-3 rounded-xl border transition-all text-center ${
-                        selectedUser === testUser.email
-                          ? 'bg-purple-500/20 border-purple-500/50'
-                          : 'bg-[#0d0b14] border-purple-900/20 hover:border-purple-500/30'
-                      }`}
-                    >
-                      <div className={`w-8 h-8 mx-auto mb-2 rounded-lg bg-gradient-to-br ${testUser.color} flex items-center justify-center`}>
-                        <testUser.icon className="w-4 h-4 text-white" />
-                      </div>
-                      <div className="text-xs font-medium">{testUser.role}</div>
-                      {selectedUser === testUser.email && (
-                        <CheckCircle className="w-3 h-3 text-purple-400 mx-auto mt-1" />
-                      )}
-                    </button>
-                  ))}
-                </div>
-                
-                {selectedUser && (
-                  <div className="mt-3 p-3 bg-purple-500/10 border border-purple-500/20 rounded-xl">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="text-sm font-medium text-purple-400">
-                          {TEST_USERS.find(u => u.email === selectedUser)?.role}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          {TEST_USERS.find(u => u.email === selectedUser)?.desc}
-                        </div>
-                      </div>
-                      <button
-                        onClick={handleQuickLogin}
-                        disabled={loading}
-                        className="px-4 py-2 bg-gradient-to-r from-purple-600 to-violet-600 rounded-lg text-sm font-medium hover:shadow-lg hover:shadow-purple-500/20 transition-all disabled:opacity-50"
-                      >
-                        {loading ? 'Entrando...' : 'Entrar'}
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                <div className="relative my-4">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-purple-900/20"></div>
-                  </div>
-                  <div className="relative flex justify-center text-xs">
-                    <span className="px-2 bg-[#13111c] text-gray-500">o ingresa manualmente</span>
-                  </div>
-                </div>
-              </div>
-            )}
-
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
               {mode === 'register' && (
