@@ -69,7 +69,7 @@ func main() {
 
 	// Inicializar JWT Manager
 	jwtManager := auth.NewJWTManager(
-		"mi-clave-secreta-muy-segura-para-jwt",
+		cfg.JWTSecret,
 		24*time.Hour,
 	)
 

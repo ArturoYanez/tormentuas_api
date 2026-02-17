@@ -100,10 +100,14 @@ export function useAuth() {
         
         return userData;
       } catch (error: any) {
-        // Si el backend no está disponible, usar mock
+        // Log error but don't automatically disable backend unless it's a structural failure
+        console.error('Login error:', error);
+        
         if (error.code === 'ERR_NETWORK' || error.response?.status === 502) {
-          console.log('Backend no disponible, usando datos mock');
-          setUseBackend(false);
+          // If we want to strictly test backend, we should throw here
+          // For now, we'll keep the option to fallback but make it more obvious
+          // or throw if the user wants strict integration
+          throw new Error('No se pudo conectar con el servidor. Por favor, asegúrate de que el backend esté corriendo.');
         } else {
           throw error;
         }
@@ -234,9 +238,9 @@ export function useAuth() {
         
         return userData;
       } catch (error: any) {
+        console.error('Registration error:', error);
         if (error.code === 'ERR_NETWORK' || error.response?.status === 502) {
-          console.log('Backend no disponible, usando datos mock');
-          setUseBackend(false);
+          throw new Error('No se pudo conectar con el servidor. Por favor, asegúrate de que el backend esté corriendo.');
         } else {
           throw error;
         }

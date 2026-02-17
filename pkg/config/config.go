@@ -23,7 +23,7 @@ func init() {
 	// Se intenta cargar el archivo .env
 	if err := godotenv.Load(); err != nil {
 		fmt.Printf("No se pudo cargar archivo .env: %v", err)
-        fmt.Println("Usando variables de entorno del sistema o valores por defecto")
+		fmt.Println("Usando variables de entorno del sistema o valores por defecto")
 	}
 }
 
@@ -35,7 +35,7 @@ func Load() *Config {
 		DBPassword: getEnv("DB_PASSWORD", "tormentus_password"),
 		DBName:     getEnv("DB_NAME", "tormentus_dev"),
 		ServerPort: getEnv("SERVER_PORT", "8080"),
-		JWTSecret:  getEnv("JWT_SECRET", "mi-clave-secreta-muy-segura-para-jwt-god"), 
+		JWTSecret:  getEnv("JWT_SECRET", "placeholder-secret-change-this-in-env"),
 	}
 }
 
@@ -74,7 +74,7 @@ func (c *Config) Validate() error {
 		return fmt.Errorf("DB_NAME no puede estar vacio")
 	}
 	if c.JWTSecret == "" || len(c.JWTSecret) < 32 {
-        return fmt.Errorf("JWT_SECRET debe tener al menos 32 caracteres")
-    }
+		return fmt.Errorf("JWT_SECRET debe tener al menos 32 caracteres")
+	}
 	return nil
 }
